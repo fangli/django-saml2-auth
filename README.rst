@@ -103,7 +103,7 @@ How to use?
             }
         }
 
-#. Well done.
+#. In your SAML2 SSO service provider, set Single-sign-on URL and Audience URI(SP Entity ID) to http://your-domain/saml2_auth/acs/
 
 
 
@@ -135,6 +135,18 @@ In a similar way, you can customize this logout template by added a template 'dj
 By default, we assume your SAML2 service provided user attribute Email/UserName/FirstName/LastName. Please change it to the correct 
 user attributes mapping.
 
+
+
+For okta Users
+==============
+
+I created this plugin original for okta.
+
+You can find the METADATA_AUTO_CONF_URL under saml2 app's `Sign On` tab, in the Settings box, you will see 
+
+`Identity Provider metadata is available if this application supports dynamic configuration.`
+
+Just use the link in text "Identity Provider metadata".
 
 
 How to Contribute
