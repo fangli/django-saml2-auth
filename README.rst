@@ -52,7 +52,7 @@ otherwise redirect the user to the last visited page.
 How to use?
 ===========
 
-- Override the default login page in root urls.py, by adding these lines **BEFORE** any `urlpatterns`:
+#. Override the default login page in root urls.py, by adding these lines **BEFORE** any `urlpatterns`:
 
     .. code-block:: python
 
@@ -65,7 +65,7 @@ How to use?
         # If you want to replace the admin login with SAML2, use the following line (optional)
         url(r'^admin/login/$', 'django_saml2_auth.views.signin'),
 
-- Add 'django_saml2_auth' to INSTALLED_APPS
+#. Add 'django_saml2_auth' to INSTALLED_APPS
 
     .. code-block:: python
 
@@ -74,7 +74,7 @@ How to use?
             'django_saml2_auth',
         ]
 
-- In settings.py, add SAML2 related configuration.
+#. In settings.py, add SAML2 related configuration.
 
     Please note only METADATA_AUTO_CONF_URL is required. The following block just shows the full featured configuration and their default values.
 
@@ -96,7 +96,7 @@ How to use?
             }
         }
 
-3. Well done.
+#. Well done.
 
 
 
