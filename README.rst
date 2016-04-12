@@ -3,16 +3,16 @@ Django SAML2 Authentication Made Easy
 =====================================
 
 :Author: Fang Li
-:Version: 1.0.1b1
+:Version: 1.0.2b1
 
-.. image:: https://api.travis-ci.org/fangli/django_saml2_auth.png?branch=master
-    :target: https://travis-ci.org/fangli/django_saml2_auth
+.. image:: https://img.shields.io/pypi/pyversions/django-saml2-auth.svg
+    :target: https://pypi.python.org/pypi/django-saml2-auth
 
-.. image:: https://img.shields.io/pypi/v/django_saml2_auth.svg
-    :target: https://pypi.python.org/pypi/django_saml2_auth
+.. image:: https://img.shields.io/pypi/v/django-saml2-auth.svg
+    :target: https://pypi.python.org/pypi/django-saml2-auth
 
-.. image:: https://img.shields.io/pypi/dm/django_saml2_auth.svg
-        :target: https://pypi.python.org/pypi/django_saml2_auth
+.. image:: https://img.shields.io/pypi/dm/django-saml2-auth.svg
+        :target: https://pypi.python.org/pypi/django-saml2-auth
 
 This project aim to provide a dead simple way to integrate your Django powered app with SAML2 Authentication.
 Try it now, and get rid of the complicated configuration of saml.

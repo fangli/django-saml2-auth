@@ -16,12 +16,12 @@ with open(path.join(here, 'README.rst'), encoding='utf-8') as f:
 setup(
     name='django_saml2_auth',
 
-    version='1.0.1b1',
+    version='1.0.2b1',
 
     description='Django SAML2 Authentication Made Easy, integrate with SAML2 SSO such as Okta easily',
     long_description=long_description,
 
-    url='https://github.com/fangli/django_saml2_auth',
+    url='https://github.com/fangli/django-saml2-auth',
 
     author='Fang Li',
     author_email='surivlee+djsaml2auth@gmail.com',
