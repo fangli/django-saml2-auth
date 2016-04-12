@@ -3,7 +3,7 @@ Django SAML2 Authentication Made Easy
 =====================================
 
 :Author: Fang Li
-:Version: 1.0.2b1
+:Version: 1.0.2
 
 .. image:: https://img.shields.io/pypi/pyversions/django-saml2-auth.svg
     :target: https://pypi.python.org/pypi/django-saml2-auth
@@ -18,6 +18,13 @@ This project aim to provide a dead simple way to integrate your Django powered a
 Try it now, and get rid of the complicated configuration of saml.
 
 Any SAML2 based SSO(Single-Sign-On) with dynamic metadata configuration was supported by this django plugin, Such as okta.
+
+
+
+Dependencies
+============
+
+This plugin compatiable with Django 1.6/1.7/1.8/1.9, Python module `pysaml2` required.
 
 
 

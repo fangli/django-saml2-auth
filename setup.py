@@ -16,7 +16,7 @@ with open(path.join(here, 'README.rst'), encoding='utf-8') as f:
 setup(
     name='django_saml2_auth',
 
-    version='1.0.2b1',
+    version='1.0.2',
 
     description='Django SAML2 Authentication Made Easy, integrate with SAML2 SSO such as Okta easily',
     long_description=long_description,
