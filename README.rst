@@ -3,7 +3,7 @@ Django SAML2 Authentication Made Easy
 =====================================
 
 :Author: Fang Li
-:Version: 1.0.2
+:Version: 1.0.3
 
 .. image:: https://img.shields.io/pypi/pyversions/django-saml2-auth.svg
     :target: https://pypi.python.org/pypi/django-saml2-auth
@@ -83,12 +83,15 @@ How to use?
 
 #. In settings.py, add SAML2 related configuration.
 
-    Please note only METADATA_AUTO_CONF_URL is required. The following block just shows the full featured configuration and their default values.
+    Please note only **METADATA_AUTO_CONF_URL** is required. The following block just shows the full featured configuration and their default values.
 
     .. code-block:: python
 
         SAML2_AUTH = {
+            # Required
             'METADATA_AUTO_CONF_URL': '[The auto(dynamic) metadata configuration URL of SAML2]',
+
+            # Following optional
             'NEW_USER_PROFILE': {
                 'USER_GROUPS': [],  # The default group name when a new user logged in
                 'ACTIVE_STATUS': True,  # The default active status of new user
@@ -100,10 +103,33 @@ How to use?
                 'username': 'UserName',
                 'first_name': 'FirstName',
                 'last_name': 'LastName',
-            }
+            },
+            'TRIGGER': {
+                'CREATE_USER': 'path.to.your.new.user.hook.method',
+                'BEFORE_LOGIN': 'path.to.your.login.hook.method',
+            },
         }
 
 #. In your SAML2 SSO service provider, set Single-sign-on URL and Audience URI(SP Entity ID) to http://your-domain/saml2_auth/acs/
+
+
+Explanation
+-----------
+
+**METADATA_AUTO_CONF_URL** Auto SAML2 metadata configuration URL
+
+**NEW_USER_PROFILE** Everytime when a new user login, we will create the user with this default options in system.
+
+**ATTRIBUTES_MAP** map django user attributes to SAML2 user attributes.
+
+**TRIGGER** If you want to do some additional actions, just use trigger.
+
+**TRIGGER.CREATE_USER** Dot-separated style string, path to a method which receiving ONE dict parameter. This method will be triggered when a **new**
+user login, before we logged in this user, after we created the user with default options. You may want to run some new-user-related tasks in this trigger.
+
+**TRIGGER.BEFORE_LOGIN** Similar to CREATE_USER, but will be triggered only when an **existed** user login, before we logged in this user, after we got 
+attributes from okta. You may want to update user information before a user logged-in in this trigger.
+
 
 
 
