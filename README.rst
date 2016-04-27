@@ -14,17 +14,20 @@ Django SAML2 Authentication Made Easy
 .. image:: https://img.shields.io/pypi/dm/django-saml2-auth.svg
         :target: https://pypi.python.org/pypi/django-saml2-auth
 
-This project aim to provide a dead simple way to integrate your Django powered app with SAML2 Authentication.
-Try it now, and get rid of the complicated configuration of saml.
+This project aims to provide a dead simple way to integrate SAML2
+Authentication into your Django powered app. Try it now, and get rid of the
+complicated configuration of SAML.
 
-Any SAML2 based SSO(Single-Sign-On) with dynamic metadata configuration was supported by this django plugin, Such as okta.
+Any SAML2 based SSO(Single-Sign-On) identity provider with dynamic metadata
+configuration is supported by this Django plugin, for example Okta.
 
 
 
 Dependencies
 ============
 
-This plugin compatiable with Django 1.6/1.7/1.8/1.9, Python module `pysaml2` required.
+This plugin is compatible with Django 1.6/1.7/1.8/1.9. The `pysaml2` Python
+module is required.
 
 
 
@@ -50,26 +53,30 @@ or from source:
 What does this plugin do?
 =========================
 
-This plugin takes over django's login page and redirect user to SAML2 SSO authentication service. While a user 
-logged in and redirected back, it will check if this user is already in system. If not, it will create the user using django's default UserModel,
-otherwise redirect the user to the last visited page.
+This plugin takes over Django's login page and redirect the user to a SAML2
+SSO authentication service. Once the user is logged in and redirected back,
+the plugin will check if the user is already in the system. If not, the user
+will be created using Django's default UserModel, otherwise the user will be
+redirected to their last visited page.
 
 
 
 How to use?
 ===========
 
-#. Override the default login page in root urls.py, by adding these lines **BEFORE** any `urlpatterns`:
+#. Override the default login page in the root urls.py file, by adding these
+lines **BEFORE** any `urlpatterns`:
 
     .. code-block:: python
 
-        # This is the SAML2 related URLs, you can change "^saml2_auth/" to any path you want, like "^sso_auth/", "^sso_login/", etc. (required)
+        # These are the SAML2 related URLs. You can change "^saml2_auth/" regex to
+        # any path you want, like "^sso_auth/", "^sso_login/", etc. (required)
         url(r'^saml2_auth/', include('django_saml2_auth.urls')),
 
-        # If you want to replace the default user login with SAML2, just use the following line (optional)
+        # The following line will replace the default user login with SAML2 (optional)
         url(r'^accounts/login/$', 'django_saml2_auth.views.signin'),
 
-        # If you want to replace the admin login with SAML2, use the following line (optional)
+        # The following line will replace the admin login with SAML2 (optional)
         url(r'^admin/login/$', 'django_saml2_auth.views.signin'),
 
 #. Add 'django_saml2_auth' to INSTALLED_APPS
@@ -81,22 +88,24 @@ How to use?
             'django_saml2_auth',
         ]
 
-#. In settings.py, add SAML2 related configuration.
+#. In settings.py, add the SAML2 related configuration.
 
-    Please note only **METADATA_AUTO_CONF_URL** is required. The following block just shows the full featured configuration and their default values.
+    Please note, the only required setting is **METADATA_AUTO_CONF_URL**.
+    The following block shows all required and optional configuration settings
+    and their default values.
 
     .. code-block:: python
 
         SAML2_AUTH = {
-            # Required
+            # Required setting
             'METADATA_AUTO_CONF_URL': '[The auto(dynamic) metadata configuration URL of SAML2]',
 
-            # Following optional
+            # Optional settings
             'NEW_USER_PROFILE': {
-                'USER_GROUPS': [],  # The default group name when a new user logged in
-                'ACTIVE_STATUS': True,  # The default active status of new user
-                'STAFF_STATUS': True,  # The staff status of new user
-                'SUPERUSER_STATUS': False,  # The superuser status of new user
+                'USER_GROUPS': [],  # The default group name when a new user logs in
+                'ACTIVE_STATUS': True,  # The default active status for new users
+                'STAFF_STATUS': True,  # The staff status for new users
+                'SUPERUSER_STATUS': False,  # The superuser status for new users
             },
             'ATTRIBUTES_MAP': {  # Change Email/UserName/FirstName/LastName to corresponding SAML2 userprofile attributes.
                 'email': 'Email',
@@ -110,7 +119,8 @@ How to use?
             },
         }
 
-#. In your SAML2 SSO service provider, set Single-sign-on URL and Audience URI(SP Entity ID) to http://your-domain/saml2_auth/acs/
+#. In your SAML2 SSO identity provider, set the Single-sign-on URL and Audience
+   URI(SP Entity ID) to http://your-domain/saml2_auth/acs/
 
 
 Explanation
@@ -118,61 +128,71 @@ Explanation
 
 **METADATA_AUTO_CONF_URL** Auto SAML2 metadata configuration URL
 
-**NEW_USER_PROFILE** Everytime when a new user login, we will create the user with this default options in system.
+**NEW_USER_PROFILE** Default settings for newly created users
 
-**ATTRIBUTES_MAP** map django user attributes to SAML2 user attributes.
+**ATTRIBUTES_MAP** Mapping of Django user attributes to SAML2 user attributes
 
-**TRIGGER** If you want to do some additional actions, just use trigger.
+**TRIGGER** Hooks to trigger additional actions during user login and creation
+flows. These TRIGGER hooks are strings containing a `dotted module name <https://docs.python.org/3/tutorial/modules.html#packages>`_
+which point to a method to be called. The referenced method should accept a
+single argument which is a dictionary of attributes and values sent by the
+identity provider, representing the user's identity.
 
-**TRIGGER.CREATE_USER** Dot-separated style string, path to a method which receiving ONE dict parameter. This method will be triggered when a **new**
-user login, before we logged in this user, after we created the user with default options. You may want to run some new-user-related tasks in this trigger.
+**TRIGGER.CREATE_USER** A method to be called upon new user creation. This
+method will be called before the new user is logged in and after the user's
+record is created.
 
-**TRIGGER.BEFORE_LOGIN** Similar to CREATE_USER, but will be triggered only when an **existed** user login, before we logged in this user, after we got 
-attributes from okta. You may want to update user information before a user logged-in in this trigger.
-
-
+**TRIGGER.BEFORE_LOGIN** A method to be called when an existing user logs in.
+This method will be called before the user is logged in and after user
+attributes are returned by the SAML2 identity provider.
 
 
 Customize
 =========
 
-You are allowed to override the default permission `denied` page and new user `welcome` page.
+The default permission `denied` page and user `welcome` page can be
+overridden.
 
-Just put a template named 'django_saml2_auth/welcome.html' or 'django_saml2_auth/denied.html' under your project's template folder.
+To override these pages put a template named 'django_saml2_auth/welcome.html'
+or 'django_saml2_auth/denied.html' in your project's template folder.
 
-In case of 'django_saml2_auth/welcome.html' existed, when a new user logged in, we'll show this template instead of redirecting user to the 
-previous visited page. So you can have some first-visit notes and welcome words in this page. You can get user context in the template by 
-using `user` context.
+If a 'django_saml2_auth/welcome.html' template exists, that page will be shown
+to the user upon login instead of the user being redirected to the previous
+visited page. This welcome page can contain some first-visit notes and welcome
+words. The `Django user object <https://docs.djangoproject.com/en/1.9/ref/contrib/auth/#django.contrib.auth.models.User>`_
+is available within the template as the `user` template variable.
 
-By the way, we have a built-in logout page as well, if you want to use it, just add the following lines into your urls.py, before any 
+To enable a logout page, add the following lines to urls.py, before any
 `urlpatterns`:
 
 .. code-block:: python
 
-    # If you want to replace the default user logout with plugin built-in page, just use the following line (optional)
+    # The following line will replace the default user logout with the signout page (optional)
     url(r'^accounts/logout/$', 'django_saml2_auth.views.signout'),
 
-    # If you want to replace the admin logout with SAML2, use the following line (optional)
+    # The following line will replace the default admin user logout with the signout page (optional)
     url(r'^admin/logout/$', 'django_saml2_auth.views.signout'),
 
-In a similar way, you can customize this logout template by added a template 'django_saml2_auth/signout.html'.
+To override the built in signout page put a template named
+'django_saml2_auth/signout.html' in your project's template folder.
+
+If your SAML2 identity provider uses user attribute names other than the
+defaults listed in the `settings.py` `ATTRIBUTES_MAP`, update them in
+`settings.py`.
 
 
-By default, we assume your SAML2 service provided user attribute Email/UserName/FirstName/LastName. Please change it to the correct 
-user attributes mapping.
-
-
-
-For okta Users
+For Okta Users
 ==============
 
-I created this plugin original for okta.
+I created this plugin originally for Okta.
 
-You can find the METADATA_AUTO_CONF_URL under saml2 app's `Sign On` tab, in the Settings box, you will see 
+The METADATA_AUTO_CONF_URL needed in `settings.py` can be found in the Okta
+web UI by navigating to the SAML2 app's `Sign On` tab, in the Settings box.
+You should see :
 
 `Identity Provider metadata is available if this application supports dynamic configuration.`
 
-Just use the link in text "Identity Provider metadata".
+The `Identity Provider metadata` link is the METADATA_AUTO_CONF_URL.
 
 
 How to Contribute
