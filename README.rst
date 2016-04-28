@@ -3,7 +3,7 @@ Django SAML2 Authentication Made Easy
 =====================================
 
 :Author: Fang Li
-:Version: 1.0.3
+:Version: 1.0.4
 
 .. image:: https://img.shields.io/pypi/pyversions/django-saml2-auth.svg
     :target: https://pypi.python.org/pypi/django-saml2-auth
@@ -65,7 +65,7 @@ How to use?
 ===========
 
 #. Override the default login page in the root urls.py file, by adding these
-lines **BEFORE** any `urlpatterns`:
+   lines **BEFORE** any `urlpatterns`:
 
     .. code-block:: python
 
