@@ -19,3 +19,4 @@ Pysaml2
 Contributors
 ------------
 
+- `Gene Wood <http://github.com/gene1wood/>`_
