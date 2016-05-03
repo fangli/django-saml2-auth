@@ -11,6 +11,7 @@ from saml2 import (
 from saml2.client import Saml2Client
 from saml2.config import Config as Saml2Config
 
+from django import get_version
 from django.conf import settings
 from django.core.urlresolvers import reverse
 from django.contrib.auth.models import (User, Group)
@@ -20,12 +21,16 @@ from django.shortcuts import render
 from django.views.decorators.csrf import csrf_exempt
 from django.template import TemplateDoesNotExist
 from django.http import HttpResponseRedirect
-from django.utils.module_loading import import_string
+
+if get_version() >= "1.7":
+    from django.utils.module_loading import import_string
+else:
+    from django.utils.module_loading import import_by_path as import_string
 
 
 def get_current_domain(r):
     return '{scheme}://{host}'.format(
-        scheme=r.scheme,
+        scheme=r.META['wsgi.url_scheme'],
         host=r.get_host(),
     )
 
