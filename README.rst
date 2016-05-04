@@ -147,11 +147,11 @@ identity provider, representing the user's identity.
 
 **TRIGGER.CREATE_USER** A method to be called upon new user creation. This
 method will be called before the new user is logged in and after the user's
-record is created.
+record is created. This method should accept ONE parameter of user dict.
 
 **TRIGGER.BEFORE_LOGIN** A method to be called when an existing user logs in.
 This method will be called before the user is logged in and after user
-attributes are returned by the SAML2 identity provider.
+attributes are returned by the SAML2 identity provider. This method should accept ONE parameter of user dict.
 
 
 Customize
