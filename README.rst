@@ -23,6 +23,15 @@ configuration is supported by this Django plugin, for example Okta.
 
 
 
+Donate
+======
+
+We accept your donations by clicking the awesome |star| instead of any physical transfer.
+
+.. |star| image:: https://img.shields.io/github/stars/fangli/django-saml2-auth.svg?style=social&label=Star&maxAge=86400
+
+
+
 Dependencies
 ============
 
