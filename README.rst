@@ -3,7 +3,7 @@ Django SAML2 Authentication Made Easy
 =====================================
 
 :Author: Fang Li
-:Version: 1.0.4
+:Version: 1.1.0
 
 .. image:: https://img.shields.io/pypi/pyversions/django-saml2-auth.svg
     :target: https://pypi.python.org/pypi/django-saml2-auth
@@ -48,6 +48,13 @@ or from source:
     # cd django-saml2-auth
     # python setup.py install
 
+xmlsec is also required by pysaml2:
+
+.. code-block:: bash
+
+    # yum install xmlsec1
+    // or
+    # apt-get install xmlsec1
 
 
 What does this plugin do?
@@ -205,3 +212,11 @@ How to Contribute
 
 .. _`the repository`: http://github.com/fangli/django-saml2-auth
 .. _AUTHORS: https://github.com/fangli/django-saml2-auth/blob/master/AUTHORS.rst
+
+
+Release Log
+===========
+
+1.1.0: Added support for Django 1.6/1.7/1.8/1.9
+
+1.0.4: Fixed English grammar mistakes

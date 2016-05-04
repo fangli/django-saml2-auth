@@ -11,8 +11,9 @@ from saml2 import (
 from saml2.client import Saml2Client
 from saml2.config import Config as Saml2Config
 
+from django import get_version
+from pkg_resources import parse_version
 from django.conf import settings
-from django.core.urlresolvers import reverse
 from django.contrib.auth.models import (User, Group)
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth import login, logout
@@ -20,18 +21,36 @@ from django.shortcuts import render
 from django.views.decorators.csrf import csrf_exempt
 from django.template import TemplateDoesNotExist
 from django.http import HttpResponseRedirect
-from django.utils.module_loading import import_string
+
+if parse_version(get_version()) >= parse_version('1.7'):
+    from django.utils.module_loading import import_string
+else:
+    from django.utils.module_loading import import_by_path as import_string
 
 
 def get_current_domain(r):
     return '{scheme}://{host}'.format(
-        scheme=r.scheme,
+        scheme='https' if r.is_secure() else 'http',
         host=r.get_host(),
     )
 
 
+def get_reverse(objs):
+    '''In order to support different django version, I have to do this '''
+    from django.core.urlresolvers import reverse
+    if objs.__class__.__name__ not in ['list', 'tuple']:
+        objs = [objs]
+
+    for obj in objs:
+        try:
+            return reverse(obj)
+        except:
+            pass
+    raise Exception('We got a URL reverse issue: %s. This is a known issue but please still submit a ticket at https://github.com/fangli/django-saml2-auth/issues/new' % str(objs))
+
+
 def _get_saml_client(domain):
-    acs_url = domain + reverse('acs')
+    acs_url = domain + get_reverse([acs, 'acs', 'django_saml2_auth:acs'])
     import tempfile
     tmp = tempfile.NamedTemporaryFile()
     f = open(tmp.name, 'w')
@@ -39,7 +58,7 @@ def _get_saml_client(domain):
     f.close()
     saml_settings = {
         'metadata': {
-            "local": [tmp.name],
+            'local': [tmp.name],
         },
         'service': {
             'sp': {
@@ -69,9 +88,9 @@ def _get_saml_client(domain):
 @login_required
 def welcome(r):
     try:
-        return render(r, 'django_saml2_auth/welcome.html', context={'user': r.user})
+        return render(r, 'django_saml2_auth/welcome.html', {'user': r.user})
     except TemplateDoesNotExist:
-        return HttpResponseRedirect(reverse('admin:index'))
+        return HttpResponseRedirect(get_reverse('admin:index'))
 
 
 def denied(r):
@@ -94,19 +113,19 @@ def _create_new_user(username, email, firstname, lastname):
 def acs(r):
     saml_client = _get_saml_client(get_current_domain(r))
     resp = r.POST.get('SAMLResponse', None)
-    next_url = r.session.get('login_next_url', reverse('admin:index'))
+    next_url = r.session.get('login_next_url', get_reverse('admin:index'))
 
     if not resp:
-        return HttpResponseRedirect(reverse('denied'))
+        return HttpResponseRedirect(get_reverse([denied, 'denied', 'django_saml2_auth:denied']))
 
     authn_response = saml_client.parse_authn_request_response(
         resp, entity.BINDING_HTTP_POST)
     if authn_response is None:
-        return HttpResponseRedirect(reverse('denied'))
+        return HttpResponseRedirect(get_reverse([denied, 'denied', 'django_saml2_auth:denied']))
 
     user_identity = authn_response.get_identity()
     if user_identity is None:
-        return HttpResponseRedirect(reverse('denied'))
+        return HttpResponseRedirect(get_reverse([denied, 'denied', 'django_saml2_auth:denied']))
 
     user_email = user_identity[settings.SAML2_AUTH.get('ATTRIBUTES_MAP', {}).get('email', 'Email')][0]
     user_name = user_identity[settings.SAML2_AUTH.get('ATTRIBUTES_MAP', {}).get('username', 'UserName')][0]
@@ -132,11 +151,11 @@ def acs(r):
         target_user.backend = 'django.contrib.auth.backends.ModelBackend'
         login(r, target_user)
     else:
-        return HttpResponseRedirect(reverse('denied'))
+        return HttpResponseRedirect(get_reverse([denied, 'denied', 'django_saml2_auth:denied']))
 
     if is_new_user:
         try:
-            return render(r, 'django_saml2_auth/welcome.html', context={'user': r.user})
+            return render(r, 'django_saml2_auth/welcome.html', {'user': r.user})
         except TemplateDoesNotExist:
             return HttpResponseRedirect(next_url)
     else:
@@ -146,13 +165,13 @@ def acs(r):
 def signin(r):
     import urlparse
     from urllib import unquote
-    next_url = r.GET.get('next', reverse('admin:index'))
+    next_url = r.GET.get('next', get_reverse('admin:index'))
 
     try:
-        if "next=" in unquote(next_url):
+        if 'next=' in unquote(next_url):
             next_url = urlparse.parse_qs(urlparse.urlparse(unquote(next_url)).query)['next'][0]
     except:
-        next_url = r.GET.get('next', reverse('admin:index'))
+        next_url = r.GET.get('next', get_reverse('admin:index'))
 
     r.session['login_next_url'] = next_url
 
