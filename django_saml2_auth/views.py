@@ -2,7 +2,6 @@
 # -*- coding:utf-8 -*-
 
 
-import urllib2
 from saml2 import (
     BINDING_HTTP_POST,
     BINDING_HTTP_REDIRECT,
@@ -21,6 +20,13 @@ from django.shortcuts import render
 from django.views.decorators.csrf import csrf_exempt
 from django.template import TemplateDoesNotExist
 from django.http import HttpResponseRedirect
+
+try:
+    import urllib2 as _urllib
+except:
+    import urllib.request as _urllib
+    import urllib.error
+    import urllib.parse
 
 if parse_version(get_version()) >= parse_version('1.7'):
     from django.utils.module_loading import import_string
@@ -54,7 +60,7 @@ def _get_saml_client(domain):
     import tempfile
     tmp = tempfile.NamedTemporaryFile()
     f = open(tmp.name, 'w')
-    f.write(urllib2.urlopen(settings.SAML2_AUTH['METADATA_AUTO_CONF_URL']).read())
+    f.write(_urllib.urlopen(settings.SAML2_AUTH['METADATA_AUTO_CONF_URL']).read())
     f.close()
     saml_settings = {
         'metadata': {
@@ -163,13 +169,17 @@ def acs(r):
 
 
 def signin(r):
-    import urlparse
-    from urllib import unquote
+    try:
+        import urlparse as _urlparse
+        from urllib import unquote
+    except:
+        import urllib.parse as _urlparse
+        from urllib.parse import unquote
     next_url = r.GET.get('next', get_reverse('admin:index'))
 
     try:
         if 'next=' in unquote(next_url):
-            next_url = urlparse.parse_qs(urlparse.urlparse(unquote(next_url)).query)['next'][0]
+            next_url = _urlparse.parse_qs(_urlparse.urlparse(unquote(next_url)).query)['next'][0]
     except:
         next_url = r.GET.get('next', get_reverse('admin:index'))
 
