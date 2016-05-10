@@ -3,7 +3,7 @@ Django SAML2 Authentication Made Easy
 =====================================
 
 :Author: Fang Li
-:Version: 1.1.2
+:Version: 1.1.4
 
 .. image:: https://img.shields.io/pypi/pyversions/django-saml2-auth.svg
     :target: https://pypi.python.org/pypi/django-saml2-auth
@@ -225,6 +225,8 @@ How to Contribute
 
 Release Log
 ===========
+
+1.1.4: Fixed urllib bug
 
 1.1.2: Added support for Python 2.7/3.x
 

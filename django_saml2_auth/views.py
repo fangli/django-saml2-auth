@@ -59,7 +59,7 @@ def _get_saml_client(domain):
     acs_url = domain + get_reverse([acs, 'acs', 'django_saml2_auth:acs'])
     import tempfile
     tmp = tempfile.NamedTemporaryFile()
-    f = open(tmp.name, 'w')
+    f = open(tmp.name, 'wb')
     f.write(_urllib.urlopen(settings.SAML2_AUTH['METADATA_AUTO_CONF_URL']).read())
     f.close()
     saml_settings = {
