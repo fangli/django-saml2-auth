@@ -52,20 +52,26 @@ def get_reverse(objs):
             return reverse(obj)
         except:
             pass
-    raise Exception('We got a URL reverse issue: %s. This is a known issue but please still submit a ticket at https://github.com/fangli/django-saml2-auth/issues/new' % str(objs))
+    raise Exception('We got a URL reverse issue: %s. This is a known issue but'
+                    ' please still submit a ticket at https://github.com/fangl'
+                    'i/django-saml2-auth/issues/new' % str(objs))
 
 
 def _get_saml_client(domain):
     acs_url = domain + get_reverse([acs, 'acs', 'django_saml2_auth:acs'])
+    entity_id = settings.SAML2_AUTH['ENTITY_ID'] or acs_url
     import tempfile
     tmp = tempfile.NamedTemporaryFile()
     f = open(tmp.name, 'wb')
-    f.write(_urllib.urlopen(settings.SAML2_AUTH['METADATA_AUTO_CONF_URL']).read())
+    f.write(_urllib.urlopen(
+        settings.SAML2_AUTH['METADATA_AUTO_CONF_URL']).read()
+    )
     f.close()
     saml_settings = {
         'metadata': {
             'local': [tmp.name],
         },
+        'entityid': entity_id,
         'service': {
             'sp': {
                 'endpoints': {
@@ -107,10 +113,21 @@ def _create_new_user(username, email, firstname, lastname):
     user = User.objects.create_user(username, email)
     user.first_name = firstname
     user.last_name = lastname
-    user.groups = [Group.objects.get(name=x) for x in settings.SAML2_AUTH.get('NEW_USER_PROFILE', {}).get('USER_GROUPS', [])]
-    user.is_active = settings.SAML2_AUTH.get('NEW_USER_PROFILE', {}).get('ACTIVE_STATUS', True)
-    user.is_staff = settings.SAML2_AUTH.get('NEW_USER_PROFILE', {}).get('STAFF_STATUS', True)
-    user.is_superuser = settings.SAML2_AUTH.get('NEW_USER_PROFILE', {}).get('SUPERUSER_STATUS', False)
+    user.groups = [
+        Group.objects.get(name=x) for x in
+        settings.SAML2_AUTH
+        .get('NEW_USER_PROFILE', {})
+        .get('USER_GROUPS', [])
+    ]
+    user.is_active = settings.SAML2_AUTH \
+        .get('NEW_USER_PROFILE', {}) \
+        .get('ACTIVE_STATUS', True)
+    user.is_staff = settings.SAML2_AUTH \
+        .get('NEW_USER_PROFILE', {}) \
+        .get('STAFF_STATUS', True)
+    user.is_superuser = settings.SAML2_AUTH \
+        .get('NEW_USER_PROFILE', {}) \
+        .get('SUPERUSER_STATUS', False)
     user.save()
     return user
 
@@ -122,21 +139,43 @@ def acs(r):
     next_url = r.session.get('login_next_url', get_reverse('admin:index'))
 
     if not resp:
-        return HttpResponseRedirect(get_reverse([denied, 'denied', 'django_saml2_auth:denied']))
+        return HttpResponseRedirect(
+            get_reverse([denied, 'denied', 'django_saml2_auth:denied'])
+        )
 
     authn_response = saml_client.parse_authn_request_response(
         resp, entity.BINDING_HTTP_POST)
     if authn_response is None:
-        return HttpResponseRedirect(get_reverse([denied, 'denied', 'django_saml2_auth:denied']))
+        return HttpResponseRedirect(
+            get_reverse([denied, 'denied', 'django_saml2_auth:denied'])
+        )
 
     user_identity = authn_response.get_identity()
     if user_identity is None:
-        return HttpResponseRedirect(get_reverse([denied, 'denied', 'django_saml2_auth:denied']))
+        return HttpResponseRedirect(
+            get_reverse([denied, 'denied', 'django_saml2_auth:denied'])
+        )
 
-    user_email = user_identity[settings.SAML2_AUTH.get('ATTRIBUTES_MAP', {}).get('email', 'Email')][0]
-    user_name = user_identity[settings.SAML2_AUTH.get('ATTRIBUTES_MAP', {}).get('username', 'UserName')][0]
-    user_first_name = user_identity[settings.SAML2_AUTH.get('ATTRIBUTES_MAP', {}).get('first_name', 'FirstName')][0]
-    user_last_name = user_identity[settings.SAML2_AUTH.get('ATTRIBUTES_MAP', {}).get('last_name', 'LastName')][0]
+    user_email = user_identity[
+        settings.SAML2_AUTH
+        .get('ATTRIBUTES_MAP', {})
+        .get('email', 'Email')
+    ][0]
+    user_name = user_identity[
+        settings.SAML2_AUTH
+        .get('ATTRIBUTES_MAP', {})
+        .get('username', 'UserName')
+    ][0]
+    user_first_name = user_identity[
+        settings.SAML2_AUTH
+        .get('ATTRIBUTES_MAP', {})
+        .get('first_name', 'FirstName')
+    ][0]
+    user_last_name = user_identity[
+        settings.SAML2_AUTH
+        .get('ATTRIBUTES_MAP', {})
+        .get('last_name', 'LastName')
+    ][0]
 
     target_user = None
     is_new_user = False
@@ -144,11 +183,18 @@ def acs(r):
     try:
         target_user = User.objects.get(username=user_name)
         if settings.SAML2_AUTH.get('TRIGGER', {}).get('BEFORE_LOGIN', None):
-            import_string(settings.SAML2_AUTH['TRIGGER']['BEFORE_LOGIN'])(user_identity)
+            import_string(
+                settings.SAML2_AUTH['TRIGGER']['BEFORE_LOGIN']
+            )(user_identity)
     except User.DoesNotExist:
-        target_user = _create_new_user(user_name, user_email, user_first_name, user_last_name)
+        target_user = _create_new_user(
+            user_name, user_email,
+            user_first_name, user_last_name
+        )
         if settings.SAML2_AUTH.get('TRIGGER', {}).get('CREATE_USER', None):
-            import_string(settings.SAML2_AUTH['TRIGGER']['CREATE_USER'])(user_identity)
+            import_string(
+                settings.SAML2_AUTH['TRIGGER']['CREATE_USER']
+            )(user_identity)
         is_new_user = True
 
     r.session.flush()
@@ -157,11 +203,16 @@ def acs(r):
         target_user.backend = 'django.contrib.auth.backends.ModelBackend'
         login(r, target_user)
     else:
-        return HttpResponseRedirect(get_reverse([denied, 'denied', 'django_saml2_auth:denied']))
+        return HttpResponseRedirect(
+            get_reverse([denied, 'denied', 'django_saml2_auth:denied'])
+        )
 
     if is_new_user:
         try:
-            return render(r, 'django_saml2_auth/welcome.html', {'user': r.user})
+            return render(
+                r, 'django_saml2_auth/welcome.html',
+                {'user': r.user}
+            )
         except TemplateDoesNotExist:
             return HttpResponseRedirect(next_url)
     else:
@@ -179,7 +230,9 @@ def signin(r):
 
     try:
         if 'next=' in unquote(next_url):
-            next_url = _urlparse.parse_qs(_urlparse.urlparse(unquote(next_url)).query)['next'][0]
+            next_url = _urlparse.parse_qs(
+                _urlparse.urlparse(unquote(next_url)).query
+            )['next'][0]
     except:
         next_url = r.GET.get('next', get_reverse('admin:index'))
 

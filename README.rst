@@ -3,7 +3,7 @@ Django SAML2 Authentication Made Easy
 =====================================
 
 :Author: Fang Li
-:Version: 1.1.4
+:Version: 1.1.5
 
 .. image:: https://img.shields.io/pypi/pyversions/django-saml2-auth.svg
     :target: https://pypi.python.org/pypi/django-saml2-auth
@@ -117,6 +117,7 @@ How to use?
             'METADATA_AUTO_CONF_URL': '[The auto(dynamic) metadata configuration URL of SAML2]',
 
             # Optional settings
+            'ENEITY_ID': 'my-entity-id',
             'NEW_USER_PROFILE': {
                 'USER_GROUPS': [],  # The default group name when a new user logs in
                 'ACTIVE_STATUS': True,  # The default active status for new users
@@ -225,6 +226,8 @@ How to Contribute
 
 Release Log
 ===========
+
+1.1.5: Fixed Django 1.10 support.
 
 1.1.4: Fixed urllib bug
 
