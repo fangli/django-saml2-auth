@@ -20,6 +20,7 @@ from django.shortcuts import render
 from django.views.decorators.csrf import csrf_exempt
 from django.template import TemplateDoesNotExist
 from django.http import HttpResponseRedirect
+from django.utils.http import is_safe_url
 
 try:
     import urllib2 as _urllib
@@ -182,6 +183,10 @@ def signin(r):
             next_url = _urlparse.parse_qs(_urlparse.urlparse(unquote(next_url)).query)['next'][0]
     except:
         next_url = r.GET.get('next', get_reverse('admin:index'))
+
+    # Only permit signin requests where the next_url is a safe URL
+    if not is_safe_url(next_url):
+        return HttpResponseRedirect(get_reverse([denied, 'denied', 'django_saml2_auth:denied']))
 
     r.session['login_next_url'] = next_url
 
