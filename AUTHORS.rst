@@ -19,5 +19,6 @@ Pysaml2
 Contributors
 ------------
 
+- `jacobh <https://github.com/jacobh>`_
 - `Gene Wood <http://github.com/gene1wood/>`_
 - `Terry <https://github.com/tpeng>`_

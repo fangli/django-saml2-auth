@@ -3,7 +3,7 @@ Django SAML2 Authentication Made Easy
 =====================================
 
 :Author: Fang Li
-:Version: 1.1.4
+:Version: Use 1.1.4 for Django <=1.9 and 2.x.x for Django >= 1.10
 
 .. image:: https://img.shields.io/pypi/pyversions/django-saml2-auth.svg
     :target: https://pypi.python.org/pypi/django-saml2-auth
@@ -35,7 +35,7 @@ We accept your donations by clicking the awesome |star| instead of any physical 
 Dependencies
 ============
 
-This plugin is compatible with Django 1.6/1.7/1.8/1.9. The `pysaml2` Python
+This plugin is compatible with Django 1.6/1.7/1.8/1.9/1.10. The `pysaml2` Python
 module is required.
 
 
@@ -231,6 +231,8 @@ How to Contribute
 
 Release Log
 ===========
+
+2.0.1: Add support for Django 1.10
 
 1.1.4: Fixed urllib bug
 
