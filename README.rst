@@ -3,7 +3,7 @@ Django SAML2 Authentication Made Easy
 =====================================
 
 :Author: Fang Li
-:Version: Use 1.1.4 for Django <=1.9 and 2.x.x for Django >= 1.10
+:Version: Use 1.1.4 for Django <=1.9 and 2.x.x for Django >= 1.8
 
 .. image:: https://img.shields.io/pypi/pyversions/django-saml2-auth.svg
     :target: https://pypi.python.org/pypi/django-saml2-auth
@@ -231,6 +231,8 @@ How to Contribute
 
 Release Log
 ===========
+
+2.0.3: Fixed a vulnerabilities in the login flow, thanks qwrrty.
 
 2.0.1: Add support for Django 1.10
 
