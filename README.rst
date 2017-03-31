@@ -80,6 +80,12 @@ redirected to their last visited page.
 How to use?
 ===========
 
+#. Import the views module in your root urls.py
+
+    .. code-block:: python
+
+        import django_saml2_auth.views
+
 #. Override the default login page in the root urls.py file, by adding these
    lines **BEFORE** any `urlpatterns`:
 
@@ -90,10 +96,10 @@ How to use?
         url(r'^saml2_auth/', include('django_saml2_auth.urls')),
 
         # The following line will replace the default user login with SAML2 (optional)
-        url(r'^accounts/login/$', 'django_saml2_auth.views.signin'),
+        url(r'^accounts/login/$', django_saml2_auth.views.signin),
 
         # The following line will replace the admin login with SAML2 (optional)
-        url(r'^admin/login/$', 'django_saml2_auth.views.signin'),
+        url(r'^admin/login/$', django_saml2_auth.views.signin),
 
 #. Add 'django_saml2_auth' to INSTALLED_APPS
 
