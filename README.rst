@@ -232,6 +232,8 @@ How to Contribute
 Release Log
 ===========
 
+2.0.4: Fixed compatibility with Windows.
+
 2.0.3: Fixed a vulnerabilities in the login flow, thanks qwrrty.
 
 2.0.1: Add support for Django 1.10
