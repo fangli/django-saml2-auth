@@ -96,9 +96,13 @@ How to use?
         url(r'^saml2_auth/', include('django_saml2_auth.urls')),
 
         # The following line will replace the default user login with SAML2 (optional)
+        # If you want to specific the after-login-redirect-URL, use parameter "?next=/the/path/you/want"
+        # with this view.
         url(r'^accounts/login/$', django_saml2_auth.views.signin),
 
         # The following line will replace the admin login with SAML2 (optional)
+        # If you want to specific the after-login-redirect-URL, use parameter "?next=/the/path/you/want"
+        # with this view.
         url(r'^admin/login/$', django_saml2_auth.views.signin),
 
 #. Add 'django_saml2_auth' to INSTALLED_APPS
@@ -122,7 +126,8 @@ How to use?
             # Required setting
             'METADATA_AUTO_CONF_URL': '[The auto(dynamic) metadata configuration URL of SAML2]',
 
-            # Optional settings
+            # Optional settings below
+            'DEFAULT_NEXT_URL': '/admin',  # Custom target redirect URL after the user get logged in. Default to /admin if not set. This setting will be overwritten if you have parameter ?next= specificed in the login URL.
             'NEW_USER_PROFILE': {
                 'USER_GROUPS': [],  # The default group name when a new user logs in
                 'ACTIVE_STATUS': True,  # The default active status for new users
@@ -231,6 +236,8 @@ How to Contribute
 
 Release Log
 ===========
+
+2.1.0: Add DEFAULT_NEXT_URL. Issue #19.
 
 2.0.4: Fixed compatibility with Windows.
 
