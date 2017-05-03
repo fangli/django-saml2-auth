@@ -59,12 +59,17 @@ def get_reverse(objs):
     raise Exception('We got a URL reverse issue: %s. This is a known issue but please still submit a ticket at https://github.com/fangli/django-saml2-auth/issues/new' % str(objs))
 
 
-def _get_saml_client(domain):
+def _get_saml_client(domain, **kwargs):
     acs_url = domain + get_reverse([acs, 'acs', 'django_saml2_auth:acs'])
     import tempfile, os
     f = tempfile.NamedTemporaryFile(mode='wb', delete=False)
     f.write(_urllib.urlopen(settings.SAML2_AUTH['METADATA_AUTO_CONF_URL']).read())
     f.close()
+    allow_unsolicited = kwargs.get('allow_unsolicited') or settings.SAML2_AUTH.get('allow_unsolicited', True)
+    authn_requests_signed = kwargs.get('authn_requests_signed') or settings.SAML2_AUTH.get('authn_requests_signed', False)
+    logout_requests_signed = kwargs.get('logout_requests_signed') or settings.SAML2_AUTH.get('logout_requests_signed', True)
+    want_assertions_signed = kwargs.get('want_assertions_signed') or settings.SAML2_AUTH.get('want_assertions_signed', True)
+    want_response_signed = kwargs.get('want_response_signed') or settings.SAML2_AUTH.get('want_response_signed', False)
     saml_settings = {
         'metadata': {
             'local': [f.name],
@@ -77,11 +82,11 @@ def _get_saml_client(domain):
                         (acs_url, BINDING_HTTP_POST)
                     ],
                 },
-                'allow_unsolicited': True,
-                'authn_requests_signed': False,
-                'logout_requests_signed': True,
-                'want_assertions_signed': True,
-                'want_response_signed': False,
+                'allow_unsolicited': allow_unsolicited,
+                'authn_requests_signed': authn_requests_signed,
+                'logout_requests_signed': logout_requests_signed,
+                'want_assertions_signed': want_assertions_signed,
+                'want_response_signed': want_response_signed,
             },
         },
     }
@@ -150,7 +155,7 @@ def acs(r):
             import_string(settings.SAML2_AUTH['TRIGGER']['BEFORE_LOGIN'])(user_identity)
     except User.DoesNotExist:
         if settings.SAML2_AUTH.get('CALLABLE', {}).get('CREATE_USER', None):
-            import_string(settings.SAML2_AUTH['CALLABLE']['BEFORE_LOGIN'])(user_identity)
+            target_user = import_string(settings.SAML2_AUTH['CALLABLE']['CREATE_USER'])(user_identity)
         else:
             target_user = _create_new_user(user_name, user_email, user_first_name, user_last_name)
         if settings.SAML2_AUTH.get('TRIGGER', {}).get('CREATE_USER', None):
