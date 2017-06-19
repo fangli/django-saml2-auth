@@ -36,7 +36,7 @@ else:
 
 
 def get_current_domain(r):
-    if settings.SAML2_AUTH['ASSERTION_URL']:
+    if 'ASSERTION_URL' in settings.SAML2_AUTH:
         return settings.SAML2_AUTH['ASSERTION_URL']
     return '{scheme}://{host}'.format(
         scheme='https' if r.is_secure() else 'http',
