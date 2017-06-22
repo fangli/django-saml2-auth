@@ -144,6 +144,7 @@ How to use?
                 'CREATE_USER': 'path.to.your.new.user.hook.method',
                 'BEFORE_LOGIN': 'path.to.your.login.hook.method',
             },
+            'ASSERTION_URL': 'https://mysite.com', # Custom URL to validate incoming SAML requests against
         }
 
 #. In your SAML2 SSO identity provider, set the Single-sign-on URL and Audience
@@ -173,6 +174,11 @@ record is created. This method should accept ONE parameter of user dict.
 This method will be called before the user is logged in and after user
 attributes are returned by the SAML2 identity provider. This method should accept ONE parameter of user dict.
 
+**ASSERTION_URL** A URL to validate incoming SAML responses against. By default,
+django-saml2-auth will validate the SAML response's Service Provider address
+against the actual HTTP request's host and scheme. If this value is set, it
+will validate against ASSERTION_URL instead - perfect for when django running 
+behind a reverse proxy.
 
 Customize
 =========
