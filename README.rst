@@ -243,6 +243,8 @@ How to Contribute
 Release Log
 ===========
 
+2.1.1: Added ASSERTION_URL in settings.
+
 2.1.0: Add DEFAULT_NEXT_URL. Issue #19.
 
 2.0.4: Fixed compatibility with Windows.
