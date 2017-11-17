@@ -137,7 +137,7 @@ def acs(r):
     def get_nameid(string):
         regex = '<saml:NameID.*>(.*)<\/saml:NameID>'
         nameid = re.findall(regex, string)
-        return nameid[0]
+        return nameid[0].upper().lower()
     user_identity = get_nameid(str(authn_response))
     user_email = None
     user_first_name = None
