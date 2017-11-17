@@ -22,6 +22,8 @@ from django.template import TemplateDoesNotExist
 from django.http import HttpResponseRedirect
 from django.utils.http import is_safe_url
 
+import re
+
 try:
     import urllib2 as _urllib
 except:
@@ -132,10 +134,14 @@ def acs(r):
     if authn_response is None:
         return HttpResponseRedirect(get_reverse([denied, 'denied', 'django_saml2_auth:denied']))
 
-    user_identity = authn_response.get_identity()
+    def get_nameid(self):
+        regex = '<saml:NameID.*>(.*)<\/saml:NameID>'
+        nameid = re.findall(regex, self)
+        return nameid[0]
+    user_identity = get_nameid(authn_response)
     if user_identity is None:
         return HttpResponseRedirect(get_reverse([denied, 'denied', 'django_saml2_auth:denied']))
-
+    print(user_identity)
     user_email = user_identity[settings.SAML2_AUTH.get('ATTRIBUTES_MAP', {}).get('email', 'Email')][0]
     user_name = user_identity[settings.SAML2_AUTH.get('ATTRIBUTES_MAP', {}).get('username', 'UserName')][0]
     user_first_name = user_identity[settings.SAML2_AUTH.get('ATTRIBUTES_MAP', {}).get('first_name', 'FirstName')][0]
