@@ -83,6 +83,7 @@ def _get_saml_client(domain):
                 'want_response_signed': False,
             },
         },
+        'entityid': acs_url,
     }
 
     spConfig = Saml2Config()
