@@ -63,13 +63,14 @@ def get_reverse(objs):
 
 def _get_saml_client(domain):
     acs_url = domain + get_reverse([acs, 'acs', 'django_saml2_auth:acs'])
-    import tempfile, os
-    f = tempfile.NamedTemporaryFile(mode='wb', delete=False)
-    f.write(_urllib.urlopen(settings.SAML2_AUTH['METADATA_AUTO_CONF_URL']).read())
-    f.close()
+
     saml_settings = {
         'metadata': {
-            'local': [f.name],
+            'remote': [
+                {
+                    "url": settings.SAML2_AUTH['METADATA_AUTO_CONF_URL'],
+                },
+            ],
         },
         'service': {
             'sp': {
@@ -92,7 +93,6 @@ def _get_saml_client(domain):
     spConfig.load(saml_settings)
     spConfig.allow_unknown_attributes = True
     saml_client = Saml2Client(config=spConfig)
-    os.unlink(f.name)
     return saml_client
 
 
