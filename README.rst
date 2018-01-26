@@ -201,10 +201,10 @@ To enable a logout page, add the following lines to urls.py, before any
 .. code-block:: python
 
     # The following line will replace the default user logout with the signout page (optional)
-    url(r'^accounts/logout/$', 'django_saml2_auth.views.signout'),
+    url(r'^accounts/logout/$', django_saml2_auth.views.signout),
 
     # The following line will replace the default admin user logout with the signout page (optional)
-    url(r'^admin/logout/$', 'django_saml2_auth.views.signout'),
+    url(r'^admin/logout/$', django_saml2_auth.views.signout),
 
 To override the built in signout page put a template named
 'django_saml2_auth/signout.html' in your project's template folder.
