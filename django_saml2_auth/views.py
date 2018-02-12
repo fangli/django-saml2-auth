@@ -89,6 +89,12 @@ def _get_saml_client(domain):
         },
     }
 
+    if 'ENTITY_ID' in settings.SAML2_AUTH:
+        saml_settings['entityid'] = settings.SAML2_AUTH['ENTITY_ID']
+
+    if 'NAME_ID_FORMAT' in settings.SAML2_AUTH:
+        saml_settings['service']['sp']['name_id_format'] = settings.SAML2_AUTH['NAME_ID_FORMAT']
+
     spConfig = Saml2Config()
     spConfig.load(saml_settings)
     spConfig.allow_unknown_attributes = True
