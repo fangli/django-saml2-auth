@@ -60,6 +60,6 @@ setup(
 
     packages=find_packages(),
 
-    install_requires=['pysaml2==4.0.5'],
+    install_requires=['pysaml2==4.5.0'],
     include_package_data=True,
 )

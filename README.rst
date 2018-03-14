@@ -145,6 +145,8 @@ How to use?
                 'BEFORE_LOGIN': 'path.to.your.login.hook.method',
             },
             'ASSERTION_URL': 'https://mysite.com', # Custom URL to validate incoming SAML requests against
+            'ENTITY_ID': 'https://mysite.com/saml2_auth/acs/', # Populates the Issuer element in authn request
+            'NAME_ID_FORMAT': FormatString, # Sets the Format property of authn NameIDPolicy element
         }
 
 #. In your SAML2 SSO identity provider, set the Single-sign-on URL and Audience
@@ -177,8 +179,13 @@ attributes are returned by the SAML2 identity provider. This method should accep
 **ASSERTION_URL** A URL to validate incoming SAML responses against. By default,
 django-saml2-auth will validate the SAML response's Service Provider address
 against the actual HTTP request's host and scheme. If this value is set, it
-will validate against ASSERTION_URL instead - perfect for when django running 
+will validate against ASSERTION_URL instead - perfect for when django running
 behind a reverse proxy.
+
+**ENTITY_ID** The optional entity ID string to be passed in the 'Issuer' element of authn request, if required by the IDP.
+
+**NAME_ID_FORMAT** Set to the string 'None', to exclude sending the 'Format' property of the 'NameIDPolicy' element in authn requests.
+Default value if not specified is 'urn:oasis:names:tc:SAML:2.0:nameid-format:transient'.
 
 Customize
 =========
