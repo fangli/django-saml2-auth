@@ -145,6 +145,7 @@ How to use?
                 'BEFORE_LOGIN': 'path.to.your.login.hook.method',
             },
             'ASSERTION_URL': 'https://mysite.com', # Custom URL to validate incoming SAML requests against
+            'IDP_ENTITY_ID': 'https://mysite.com/idp/shibboleth', # Entity id of idp to use
             'ENTITY_ID': 'https://mysite.com/saml2_auth/acs/', # Populates the Issuer element in authn request
             'NAME_ID_FORMAT': FormatString, # Sets the Format property of authn NameIDPolicy element
         }
