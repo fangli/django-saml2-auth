@@ -92,6 +92,9 @@ def _get_saml_client(domain):
     if 'ENTITY_ID' in settings.SAML2_AUTH:
         saml_settings['entityid'] = settings.SAML2_AUTH['ENTITY_ID']
 
+    if 'IDP_ENTITY_ID' in settings.SAML2_AUTH:
+        saml_settings['service']['sp']['idp'] = settings.SAML2_AUTH['IDP_ENTITY_ID']
+
     if 'NAME_ID_FORMAT' in settings.SAML2_AUTH:
         saml_settings['service']['sp']['name_id_format'] = settings.SAML2_AUTH['NAME_ID_FORMAT']
 
@@ -205,7 +208,7 @@ def signin(r):
     r.session['login_next_url'] = next_url
 
     saml_client = _get_saml_client(get_current_domain(r))
-    _, info = saml_client.prepare_for_authenticate()
+    _, info = saml_client.prepare_for_authenticate(settings.SAML2_AUTH['IDP_ENTITY_ID'])
 
     redirect_url = None
 
