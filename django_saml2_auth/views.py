@@ -22,6 +22,8 @@ from django.template import TemplateDoesNotExist
 from django.http import HttpResponseRedirect
 from django.utils.http import is_safe_url
 
+from rest_auth.utils import jwt_encode
+
 
 # default User or custom User. Now both will work.
 User = get_user_model()
@@ -177,6 +179,16 @@ def acs(r):
         login(r, target_user)
     else:
         return HttpResponseRedirect(get_reverse([denied, 'denied', 'django_saml2_auth:denied']))
+
+    if settings.SAML2_AUTH['USE_JWT']:
+        # We use JWT auth send token to frontend
+        jwt_token = jwt_encode(target_user)
+        query = '?uid={}&token={}'.format(target_user.id, jwt_token)
+
+        frontend_url = settings.SAML2_AUTH.get(
+            'FRONTEND_URL', next_url)
+
+        return HttpResponseRedirect(frontend_url+query)
 
     if is_new_user:
         try:
