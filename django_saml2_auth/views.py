@@ -13,14 +13,18 @@ from saml2.config import Config as Saml2Config
 from django import get_version
 from pkg_resources import parse_version
 from django.conf import settings
-from django.contrib.auth.models import (User, Group)
+from django.contrib.auth.models import Group
 from django.contrib.auth.decorators import login_required
-from django.contrib.auth import login, logout
+from django.contrib.auth import login, logout, get_user_model
 from django.shortcuts import render
 from django.views.decorators.csrf import csrf_exempt
 from django.template import TemplateDoesNotExist
 from django.http import HttpResponseRedirect
 from django.utils.http import is_safe_url
+
+
+# default User or custom User. Now both will work.
+User = get_user_model()
 
 try:
     import urllib2 as _urllib
