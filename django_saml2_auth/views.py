@@ -61,17 +61,27 @@ def get_reverse(objs):
     raise Exception('We got a URL reverse issue: %s. This is a known issue but please still submit a ticket at https://github.com/fangli/django-saml2-auth/issues/new' % str(objs))
 
 
-def _get_saml_client(domain):
-    acs_url = domain + get_reverse([acs, 'acs', 'django_saml2_auth:acs'])
-
-    saml_settings = {
-        'metadata': {
+def _get_metadata():
+    if 'METADATA_LOCAL_FILE_PATH' in settings.SAML2_AUTH:
+        return {
+            'local': [settings.SAML2_AUTH['METADATA_LOCAL_FILE_PATH']]
+        }
+    else:
+        return {
             'remote': [
                 {
                     "url": settings.SAML2_AUTH['METADATA_AUTO_CONF_URL'],
                 },
-            ],
-        },
+            ]
+        }
+
+
+def _get_saml_client(domain):
+    acs_url = domain + get_reverse([acs, 'acs', 'django_saml2_auth:acs'])
+    metadata = _get_metadata()
+
+    saml_settings = {
+        'metadata': metadata,
         'service': {
             'sp': {
                 'endpoints': {

@@ -123,8 +123,9 @@ How to use?
     .. code-block:: python
 
         SAML2_AUTH = {
-            # Required setting
+            # Metadata is required, choose either remote url or local file path
             'METADATA_AUTO_CONF_URL': '[The auto(dynamic) metadata configuration URL of SAML2]',
+            'METADATA_LOCAL_FILE_PATH': '[The metadata configuration file path]',
 
             # Optional settings below
             'DEFAULT_NEXT_URL': '/admin',  # Custom target redirect URL after the user get logged in. Default to /admin if not set. This setting will be overwritten if you have parameter ?next= specificed in the login URL.
@@ -157,6 +158,8 @@ Explanation
 -----------
 
 **METADATA_AUTO_CONF_URL** Auto SAML2 metadata configuration URL
+
+**METADATA_LOCAL_FILE_PATH** SAML2 metadata configuration file path
 
 **NEW_USER_PROFILE** Default settings for newly created users
 

@@ -27,3 +27,4 @@ Contributors
 - `Tonymke <https://github.com/tonymke/>`_
 - `pintor <https://github.com/pintor>`_
 - `BaconAndEggs <https://github.com/BaconAndEggs>`_
+- `kevPo <https://github.com/kevPo>`_
