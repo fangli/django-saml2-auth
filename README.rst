@@ -149,6 +149,8 @@ How to use?
             'ASSERTION_URL': 'https://mysite.com', # Custom URL to validate incoming SAML requests against
             'ENTITY_ID': 'https://mysite.com/saml2_auth/acs/', # Populates the Issuer element in authn request
             'NAME_ID_FORMAT': FormatString, # Sets the Format property of authn NameIDPolicy element
+            'USE_JWT': False, # Set this to True if you are running a Single Page Application (SPA) with Django Rest Framework (DRF), and are using JWT authentication to authorize client users
+            'FRONTEND_URL': 'https://myfrontendclient.com', # Redirect URL for the client if you are using JWT auth with DRF. See explanation below
         }
 
 #. In your SAML2 SSO identity provider, set the Single-sign-on URL and Audience
@@ -192,6 +194,12 @@ behind a reverse proxy.
 
 **NAME_ID_FORMAT** Set to the string 'None', to exclude sending the 'Format' property of the 'NameIDPolicy' element in authn requests.
 Default value if not specified is 'urn:oasis:names:tc:SAML:2.0:nameid-format:transient'.
+
+**USE_JWT** Set this to the boolean True if you are using Django Rest Framework with JWT authentication
+
+**FRONTEND_URL** If USE_JWT is True, you should set the URL of where your frontend is located (will default to DEFAULT_NEXT_URL if you fail to do so). Once the client is authenticated through the SAML/SSO, your client is redirected to the FRONTEND_URL with the user id (uid) and JWT token (token) as query parameters.
+Example: 'https://myfrontendclient.com/?uid=<user id>&token=<jwt token>'
+With these params your client can now authenticate will server resources.
 
 Customize
 =========

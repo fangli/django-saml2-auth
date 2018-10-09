@@ -13,14 +13,20 @@ from saml2.config import Config as Saml2Config
 from django import get_version
 from pkg_resources import parse_version
 from django.conf import settings
-from django.contrib.auth.models import (User, Group)
+from django.contrib.auth.models import Group
 from django.contrib.auth.decorators import login_required
-from django.contrib.auth import login, logout
+from django.contrib.auth import login, logout, get_user_model
 from django.shortcuts import render
 from django.views.decorators.csrf import csrf_exempt
 from django.template import TemplateDoesNotExist
 from django.http import HttpResponseRedirect
 from django.utils.http import is_safe_url
+
+from rest_auth.utils import jwt_encode
+
+
+# default User or custom User. Now both will work.
+User = get_user_model()
 
 try:
     import urllib2 as _urllib
@@ -187,6 +193,16 @@ def acs(r):
         login(r, target_user)
     else:
         return HttpResponseRedirect(get_reverse([denied, 'denied', 'django_saml2_auth:denied']))
+
+    if settings.SAML2_AUTH.get('USE_JWT') is True:
+        # We use JWT auth send token to frontend
+        jwt_token = jwt_encode(target_user)
+        query = '?uid={}&token={}'.format(target_user.id, jwt_token)
+
+        frontend_url = settings.SAML2_AUTH.get(
+            'FRONTEND_URL', next_url)
+
+        return HttpResponseRedirect(frontend_url+query)
 
     if is_new_user:
         try:

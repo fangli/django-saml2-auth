@@ -27,5 +27,6 @@ Contributors
 - `Tonymke <https://github.com/tonymke/>`_
 - `pintor <https://github.com/pintor>`_
 - `BaconAndEggs <https://github.com/BaconAndEggs>`_
+- `Ryan Mahaffey <https://github.com/mahaffey>`_
 - `ayr-ton <https://github.com/ayr-ton>`_
 _ `kevPo <https://github.com/kevPo>`_
