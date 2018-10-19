@@ -3,6 +3,9 @@ __pycache__/
 *.py[cod]
 *$py.class
 
+# Virtual environment
+venv/
+
 # C extensions
 *.so
 
@@ -60,3 +63,9 @@ target/
 
 #Ipython Notebook
 .ipynb_checkpoints
+
+# Temp files
+*.swp
+
+# Misc.
+.DS_Store
