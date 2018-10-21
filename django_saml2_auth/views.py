@@ -72,7 +72,7 @@ def _get_metadata():
         return {
             'local': [settings.SAML2_AUTH['METADATA_LOCAL_FILE_PATH']]
         }
-    else:
+    else if 'METADATA_AUTO_CONF_URL' in settings.SAML2_AUTH:
         return {
             'remote': [
                 {
@@ -80,6 +80,11 @@ def _get_metadata():
                 },
             ]
         }
+    else if 'METADATA' in settings.SAML2_AUTH:
+        return settings.SAML2_AUTH['METADATA']
+    else:
+        raise Exception('Invalid configuration, one of "METADATA_AUTO_CONF_URL", '
+                        '"METADATA_LOCAL_FILE_PATH", or "METADATA" is required.')
 
 
 def _get_saml_client(domain):
@@ -160,25 +165,48 @@ def acs(r):
     if authn_response is None:
         return HttpResponseRedirect(get_reverse([denied, 'denied', 'django_saml2_auth:denied']))
 
-    user_identity = authn_response.get_identity()
-    if user_identity is None:
+    # The requesting IdP has to be identified in order to look up the attributes to use to parse the request
+    entity_id = authn_response.issuer()
+    if entity_id is None:
         return HttpResponseRedirect(get_reverse([denied, 'denied', 'django_saml2_auth:denied']))
 
-    user_email = user_identity[settings.SAML2_AUTH.get('ATTRIBUTES_MAP', {}).get('email', 'Email')][0]
-    user_name = user_identity[settings.SAML2_AUTH.get('ATTRIBUTES_MAP', {}).get('username', 'UserName')][0]
-    user_first_name = user_identity[settings.SAML2_AUTH.get('ATTRIBUTES_MAP', {}).get('first_name', 'FirstName')][0]
-    user_last_name = user_identity[settings.SAML2_AUTH.get('ATTRIBUTES_MAP', {}).get('last_name', 'LastName')][0]
+    # Look up attributes for parsing. Must be specified explicitly for each IdP.
+    attributes_for_entity = settings.SAML2_AUTH['ATTRIBUTES_MAP'].get(entity_id, {})
+    if not attributes_for_entity:
+        return HttpResponseRedirect(get_reverse([denied, 'denied', 'django_saml2_auth:denied']))
+
+    identifier = attributes_for_entity['UNIQUE_IDENTIFIER']
+
+    if attributes_for_entity.get('USE_NAME_ID', False):
+        name_id = authn_response.name_id
+        if name_id is None:
+            return HttpResponseRedirect(get_reverse([denied, 'denied', 'django_saml2_auth:denied']))
+
+        unique_kwarg = {identifier: name_id.text}
+
+    else:
+        user_identity = authn_response.get_identity()
+        if user_identity is None:
+            return HttpResponseRedirect(get_reverse([denied, 'denied', 'django_saml2_auth:denied']))
+
+        unique_kwarg = {identifier: user_identity[identifier][0]}
 
     target_user = None
     is_new_user = False
 
     try:
-        target_user = User.objects.get(username=user_name)
+        target_user = User.objects.get(**unique_kwarg)
         if settings.SAML2_AUTH.get('TRIGGER', {}).get('BEFORE_LOGIN', None):
             import_string(settings.SAML2_AUTH['TRIGGER']['BEFORE_LOGIN'])(user_identity)
     except User.DoesNotExist:
         new_user_should_be_created = settings.SAML2_AUTH.get('CREATE_USER', True)
         if new_user_should_be_created: 
+
+            user_name = user_identity[attributes_for_entity.get('username', 'UserName')][0]
+            user_email = user_identity[attributes_for_entity.get('email', 'Email')][0]
+            user_first_name = user_identity[attributes_for_entity.get('first_name', 'FirstName')][0]
+            user_last_name = user_identity[attributes_for_entity.get('last_name', 'LastName')][0]
+
             target_user = _create_new_user(user_name, user_email, user_first_name, user_last_name)
             if settings.SAML2_AUTH.get('TRIGGER', {}).get('CREATE_USER', None):
                 import_string(settings.SAML2_AUTH['TRIGGER']['CREATE_USER'])(user_identity)
@@ -234,8 +262,16 @@ def signin(r):
 
     r.session['login_next_url'] = next_url
 
+    # Allow the requester to select the IDP they want to use. Required if multiple IDPs are configured.
+    selected_idp = r.GET.get('idp', None)
+
     saml_client = _get_saml_client(get_current_domain(r))
-    _, info = saml_client.prepare_for_authenticate()
+    idps = saml_client.config.metadata.identity_providers()
+
+    if selected_idp is None and len(idps) > 1:
+        return HttpResponseRedirect(get_reverse(denied, 'denied', 'django_saml2_auth:denied'))
+
+    _, info = saml_client.prepare_for_authenticate(entityid=selected_idp)
 
     redirect_url = None
 
