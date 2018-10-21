@@ -125,7 +125,7 @@ How to use?
         SAML2_AUTH = {
             # REQUIRED SETTINGS
 
-            # Metadata is required, choose one of the options below
+            # Choose one of the options below
             'METADATA_AUTO_CONF_URL': '[The auto(dynamic) metadata configuration URL of SAML2]',
             'METADATA_LOCAL_FILE_PATH': '[The metadata configuration file path]',
             'METADATA': '[A Python dict specifying whatever local and/or remote metadata files you want]',
@@ -136,7 +136,9 @@ How to use?
                     'UNIQUE_IDENTIFIER': '[Field to use for the Django User model lookup]',
                     'USE_NAME_ID': False,  # Set to True to use the value of the NameID attributeas the value for the UNIQUE_IDENTIFIER field
 
-                    # If new user creation is supported, the values below will be used to look up the corresponding assertion attributes by name. A new User instance will be created with the values of those attributes.
+                    # If new user creation is supported, the values below will be used to
+                    # look up the corresponding assertion attributes by name. A new User
+                    # instance will be created with the values of those attributes.
                     'email': 'Email',
                     'username': 'UserName',
                     'first_name': 'FirstName',
