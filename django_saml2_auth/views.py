@@ -220,13 +220,19 @@ def signin(r):
     except:
         import urllib.parse as _urlparse
         from urllib.parse import unquote
-    next_url = r.GET.get('next', settings.SAML2_AUTH.get('DEFAULT_NEXT_URL', get_reverse('admin:index')))
+
+    # make sure reverse isn't called if DEFAULT_NEXT_URL is found
+    next_url_value = settings.SAML2_AUTH.get('DEFAULT_NEXT_URL')
+    if next_url_value is None:
+        next_url_value = get_reverse('admin:index')
+
+    next_url = r.GET.get('next', next_url_value)
 
     try:
         if 'next=' in unquote(next_url):
             next_url = _urlparse.parse_qs(_urlparse.urlparse(unquote(next_url)).query)['next'][0]
     except:
-        next_url = r.GET.get('next', settings.SAML2_AUTH.get('DEFAULT_NEXT_URL', get_reverse('admin:index')))
+        next_url = r.GET.get('next', next_url_value)
 
     # Only permit signin requests where the next_url is a safe URL
     if not is_safe_url(next_url, None):
