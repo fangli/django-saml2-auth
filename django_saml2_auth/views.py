@@ -123,7 +123,10 @@ def welcome(r):
     try:
         return render(r, 'django_saml2_auth/welcome.html', {'user': r.user})
     except TemplateDoesNotExist:
-        return HttpResponseRedirect(settings.SAML2_AUTH.get('DEFAULT_NEXT_URL', get_reverse('admin:index')))
+        url = settings.SAML2_AUTH.get('DEFAULT_NEXT_URL')
+        if url is None:
+            url = get_reverse('admin:index')
+        return HttpResponseRedirect(url)
 
 
 def denied(r):
@@ -150,7 +153,10 @@ def _create_new_user(username, email, firstname, lastname):
 def acs(r):
     saml_client = _get_saml_client(get_current_domain(r))
     resp = r.POST.get('SAMLResponse', None)
-    next_url = r.session.get('login_next_url', settings.SAML2_AUTH.get('DEFAULT_NEXT_URL', get_reverse('admin:index')))
+    next_url_value = settings.SAML2_AUTH.get('DEFAULT_NEXT_URL')
+    if next_url_value is None:
+        next_url_value = get_reverse('admin:index')
+    next_url = r.session.get('login_next_url', next_url_value)
 
     if not resp:
         return HttpResponseRedirect(get_reverse([denied, 'denied', 'django_saml2_auth:denied']))
