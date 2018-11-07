@@ -209,6 +209,7 @@ def acs(r):
         is_new_user = True
 
     r.session.flush()
+    target_user = User.objects.get(username=user_name)
 
     if target_user.is_active:
         target_user.backend = 'django.contrib.auth.backends.ModelBackend'
