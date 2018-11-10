@@ -24,8 +24,6 @@ from django.utils.http import is_safe_url
 
 from rest_auth.utils import jwt_encode
 
-from django_saml2_auth.conf import get_saml_client
-
 
 # default User or custom User. Now both will work.
 User = get_user_model()
@@ -55,16 +53,16 @@ def get_current_domain(r):
 def get_reverse(objs):
     # In order to support different django version, I have to do this
     if parse_version(get_version()) >= parse_version('2.0'):
-        from django.urls import reverse, NoReverseMatch
+        from django.urls import reverse
     else:
-        from django.core.urlresolvers import reverse, NoReverseMatch
+        from django.core.urlresolvers import reverse
     if objs.__class__.__name__ not in ['list', 'tuple']:
         objs = [objs]
 
     for obj in objs:
         try:
             return reverse(obj)
-        except NoReverseMatch:
+        except:
             pass
     raise Exception('We got a URL reverse issue: %s. This is a known issue but please still submit a ticket at https://github.com/fangli/django-saml2-auth/issues/new' % str(objs))
 
@@ -152,7 +150,7 @@ def _create_new_user(username, email, firstname, lastname):
 
 @csrf_exempt
 def acs(r):
-    saml_client = get_saml_client(get_current_domain(r))
+    saml_client = _get_saml_client(get_current_domain(r))
     resp = r.POST.get('SAMLResponse', None)
     next_url = r.session.get('login_next_url', settings.SAML2_AUTH['DEFAULT_NEXT_URL'])
 
