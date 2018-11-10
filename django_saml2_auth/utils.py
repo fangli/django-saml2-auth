@@ -1,7 +1,7 @@
-from pkg_resources import parse_version
-
 from django import get_version
 from django.conf import settings
+
+from pkg_resources import parse_version
 
 
 def get_sp_domain(r):
