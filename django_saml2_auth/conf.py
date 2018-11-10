@@ -6,7 +6,6 @@ from saml2.config import Config as Saml2Config
 from django.conf import settings
 
 
-
 def get_saml_client(domain):
     sp_config = _get_saml_config(domain)
     saml_client = Saml2Client(config=sp_config)
