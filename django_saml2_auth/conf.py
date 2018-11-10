@@ -8,20 +8,20 @@ from django.conf import settings
 
 
 def get_saml_client(domain):
-    sp_config = get_saml_config(domain)
+    sp_config = _get_saml_config(domain)
     saml_client = Saml2Client(config=sp_config)
     return saml_client
 
 
-def get_saml_config(domain):
-    settings = parse_settings(domain)
+def _get_saml_config(domain):
+    settings = _parse_settings(domain)
     sp_config = Saml2Config()
     sp_config.load(settings)
     sp_config.allow_unknown_attributes = True
     return sp_config
 
 
-def parse_settings(domain):
+def _parse_settings(domain):
     acs_url = domain + get_reverse([acs, 'acs', 'django_saml2_auth:acs'])
     metadata = _get_metadata()
 
