@@ -16,6 +16,7 @@ from django.conf import settings
 from django.contrib.auth.models import Group
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth import login, logout, get_user_model
+from django.core.exceptions import ImproperlyConfigured
 from django.shortcuts import render
 from django.views.decorators.csrf import csrf_exempt
 from django.template import TemplateDoesNotExist
@@ -81,7 +82,7 @@ def _get_metadata():
             ]
         }
     else:
-        raise Exception('Invalid configuration, one of "METADATA_LOCAL_FILE_PATH" '
+        raise ImproperlyConfigured('One of "METADATA_LOCAL_FILE_PATH" '
                         'or "METADATA_AUTO_CONF_URL" is required')
 
 
