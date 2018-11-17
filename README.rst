@@ -116,24 +116,29 @@ How to use?
 
 #. In settings.py, add the SAML2 related configuration.
 
-    Please note, the only required setting is **METADATA_AUTO_CONF_URL**.
+    Please note that **DEFAULT_NEXT_URL** is required, as is one of either
+    **METADATA_AUTO_CONF_URL** or **METADATA_LOCAL_FILE_PATH**.
     The following block shows all required and optional configuration settings
     and their default values.
 
     .. code-block:: python
 
         SAML2_AUTH = {
+            # REQUIRED SETTINGS
+
+            'DEFAULT_NEXT_URL': '[url]',  # Redirect user to this url after login.
+
             # Metadata is required, choose either remote url or local file path
             'METADATA_AUTO_CONF_URL': '[The auto(dynamic) metadata configuration URL of SAML2]',
             'METADATA_LOCAL_FILE_PATH': '[The metadata configuration file path]',
 
-            # Optional settings below
-            'DEFAULT_NEXT_URL': '/admin',  # Custom target redirect URL after the user get logged in. Default to /admin if not set. This setting will be overwritten if you have parameter ?next= specificed in the login URL.
-            'CREATE_USER': 'TRUE', # Create a new Django user when a new user logs in. Defaults to True.
+            # OPTIONAL SETTINGS
+
+            'CREATE_USER': False, # Create a new Django user when a new user logs in. Defaults to False.
             'NEW_USER_PROFILE': {
                 'USER_GROUPS': [],  # The default group name when a new user logs in
                 'ACTIVE_STATUS': True,  # The default active status for new users
-                'STAFF_STATUS': True,  # The staff status for new users
+                'STAFF_STATUS': False,  # The staff status for new users
                 'SUPERUSER_STATUS': False,  # The superuser status for new users
             },
             'ATTRIBUTES_MAP': {  # Change Email/UserName/FirstName/LastName to corresponding SAML2 userprofile attributes.
@@ -159,6 +164,8 @@ How to use?
 
 Explanation
 -----------
+
+**DEFAULT_NEXT_URL** Target redirect URL after the user logs in. This setting will be ignored if you have the query string parameter `?next=` specified in the login URL.
 
 **METADATA_AUTO_CONF_URL** Auto SAML2 metadata configuration URL
 
