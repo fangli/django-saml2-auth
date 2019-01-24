@@ -229,7 +229,12 @@ def signin(r):
         next_url = r.GET.get('next', settings.SAML2_AUTH.get('DEFAULT_NEXT_URL', get_reverse('admin:index')))
 
     # Only permit signin requests where the next_url is a safe URL
-    if not is_safe_url(next_url, None):
+    if parse_version(get_version()) >= parse_version('2.0'):
+        url_ok = is_safe_url(next_url, None)
+    else:
+        url_ok = is_safe_url(next_url)
+
+    if not url_ok:
         return HttpResponseRedirect(get_reverse([denied, 'denied', 'django_saml2_auth:denied']))
 
     r.session['login_next_url'] = next_url
