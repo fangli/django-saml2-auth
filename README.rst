@@ -3,7 +3,7 @@ Django SAML2 Authentication Made Easy
 =====================================
 
 :Author: Fang Li
-:Version: Use 1.1.4 for Django <=1.9 and 2.x.x for Django >= 1.9
+:Version: Use 1.1.4 for Django <=1.9, 2.x.x for Django >= 1.9, Latest supported django version is 2.1
 
 .. image:: https://img.shields.io/pypi/pyversions/django-saml2-auth.svg
     :target: https://pypi.python.org/pypi/django-saml2-auth
@@ -20,6 +20,16 @@ complicated configuration of SAML.
 
 Any SAML2 based SSO(Single-Sign-On) identity provider with dynamic metadata
 configuration is supported by this Django plugin, for example Okta.
+
+
+When you raise an issue or PR
+=============================
+
+Please note this library is used in tons of production environment and plays a mission-critical role in most deployment. It supports almost all django versions since 1.1.4. We need to be extremely careful when merging any changes.
+
+So most non-security features or enhancements will be REJECTED. please fork your own version or just copy the code as you need. I want to make this module dead simple and reliable. That means when you have it properly configured, you are not likely to get into any troubles in the future.
+
+The supports to new versions of django are still welcome and I'll make best effort to make it latest django compatible.
 
 
 
@@ -265,6 +275,8 @@ How to Contribute
 
 Release Log
 ===========
+
+2.2.1: Fixed is_safe_url parameters issue for django 2.1
 
 2.2.0: ADFS SAML compatibility and fixed some issue for Django2.0
 
