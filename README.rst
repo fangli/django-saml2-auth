@@ -64,6 +64,8 @@ xmlsec is also required by pysaml2:
     # yum install xmlsec1
     // or
     # apt-get install xmlsec1
+    // Mac
+    # brew install xmlsec1
 
 
 What does this plugin do?
