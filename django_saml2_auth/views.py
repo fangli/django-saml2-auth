@@ -41,6 +41,13 @@ else:
     from django.utils.module_loading import import_by_path as import_string
 
 
+def _default_next_url():
+    if 'DEFAULT_NEXT_URL' in settings.SAML2_AUTH:
+        return settings.SAML2_AUTH['DEFAULT_NEXT_URL']
+    # Lazily evaluate this in case we don't have admin loaded.
+    return get_reverse('admin:index')
+
+
 def get_current_domain(r):
     if 'ASSERTION_URL' in settings.SAML2_AUTH:
         return settings.SAML2_AUTH['ASSERTION_URL']
@@ -123,7 +130,7 @@ def welcome(r):
     try:
         return render(r, 'django_saml2_auth/welcome.html', {'user': r.user})
     except TemplateDoesNotExist:
-        return HttpResponseRedirect(settings.SAML2_AUTH.get('DEFAULT_NEXT_URL', get_reverse('admin:index')))
+        return HttpResponseRedirect(_default_next_url())
 
 
 def denied(r):
@@ -150,7 +157,7 @@ def _create_new_user(username, email, firstname, lastname):
 def acs(r):
     saml_client = _get_saml_client(get_current_domain(r))
     resp = r.POST.get('SAMLResponse', None)
-    next_url = r.session.get('login_next_url', settings.SAML2_AUTH.get('DEFAULT_NEXT_URL', get_reverse('admin:index')))
+    next_url = r.session.get('login_next_url', _default_next_url())
 
     if not resp:
         return HttpResponseRedirect(get_reverse([denied, 'denied', 'django_saml2_auth:denied']))
@@ -220,13 +227,13 @@ def signin(r):
     except:
         import urllib.parse as _urlparse
         from urllib.parse import unquote
-    next_url = r.GET.get('next', settings.SAML2_AUTH.get('DEFAULT_NEXT_URL', get_reverse('admin:index')))
+    next_url = r.GET.get('next', _default_next_url())
 
     try:
         if 'next=' in unquote(next_url):
             next_url = _urlparse.parse_qs(_urlparse.urlparse(unquote(next_url)).query)['next'][0]
     except:
-        next_url = r.GET.get('next', settings.SAML2_AUTH.get('DEFAULT_NEXT_URL', get_reverse('admin:index')))
+        next_url = r.GET.get('next', _default_next_url())
 
     # Only permit signin requests where the next_url is a safe URL
     if parse_version(get_version()) >= parse_version('2.0'):
