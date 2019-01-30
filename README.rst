@@ -92,12 +92,13 @@ redirected to their last visited page.
 How to use?
 ===========
 
-#. Import the views module in your root urls.py
+#. Import the urls and views modules in your root urls.py
 
     .. code-block:: python
 
+        import django_saml2_auth.urls
         import django_saml2_auth.views
-
+        
 #. Override the default login page in the root urls.py file, by adding these
    lines **BEFORE** any `urlpatterns`:
 
