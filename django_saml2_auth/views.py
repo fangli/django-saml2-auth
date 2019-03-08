@@ -173,7 +173,10 @@ def acs(r):
     is_new_user = False
 
     try:
-        target_user = User.objects.get_by_natural_key(user_name)
+        if hasattr(User.objects, 'get_by_natural_key'):
+            target_user = User.objects.get_by_natural_key(user_name)
+        else:
+            target_user = User.objects.get(username=user_name)
         if settings.SAML2_AUTH.get('TRIGGER', {}).get('BEFORE_LOGIN', None):
             import_string(settings.SAML2_AUTH['TRIGGER']['BEFORE_LOGIN'])(user_identity)
     except User.DoesNotExist:
