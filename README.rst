@@ -154,6 +154,7 @@ How to use?
                 'first_name': 'FirstName',
                 'last_name': 'LastName',
             },
+            'SUBJECT_NAMEID_MAPPING': 'email', # Change email/username/first_name/last_name to map to SAMLSUBJECT NAMEID property. 
             'TRIGGER': {
                 'CREATE_USER': 'path.to.your.new.user.hook.method',
                 'BEFORE_LOGIN': 'path.to.your.login.hook.method',
@@ -181,6 +182,10 @@ Explanation
 **NEW_USER_PROFILE** Default settings for newly created users
 
 **ATTRIBUTES_MAP** Mapping of Django user attributes to SAML2 user attributes
+
+**SUBJECT_NAMEID_MAPPING** Mapping of Django user attribute to SAMLSUBJECT NAMEID
+property. This is used to map to the Django user if no Attribute Statements were 
+found in the SAML2 response. 
 
 **TRIGGER** Hooks to trigger additional actions during user login and creation
 flows. These TRIGGER hooks are strings containing a `dotted module name <https://docs.python.org/3/tutorial/modules.html#packages>`_
