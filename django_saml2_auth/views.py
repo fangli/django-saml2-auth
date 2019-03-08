@@ -180,7 +180,15 @@ def acs(r):
     is_new_user = False
 
     try:
-        target_user = User.objects.get(username=user_name)
+
+        # check whether the getting of the user object has to be case_sensitive or not
+        # by default LOGIN_CASE_SENSITIVE = True
+        login_case_sensitive = settings.SAML2_AUTH.get('LOGIN_CASE_SENSITIVE', True)
+        if login_case_sensitive:
+            target_user = User.objects.get(username=user_name)
+        else:
+            target_user = User.objects.get(username__iexact=user_name)
+
         if settings.SAML2_AUTH.get('TRIGGER', {}).get('BEFORE_LOGIN', None):
             import_string(settings.SAML2_AUTH['TRIGGER']['BEFORE_LOGIN'])(user_identity)
     except User.DoesNotExist:
