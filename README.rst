@@ -128,18 +128,38 @@ How to use?
 
 #. In settings.py, add the SAML2 related configuration.
 
-    Please note, the only required setting is **METADATA_AUTO_CONF_URL**.
+    Please note that **ATTRIBUTES_MAP** is required, as is one of either **METADATA_AUTO_CONF_URL**, **METADATA_LOCAL_FILE_PATH** or **METADATA**.
     The following block shows all required and optional configuration settings
     and their default values.
 
     .. code-block:: python
 
         SAML2_AUTH = {
-            # Metadata is required, choose either remote url or local file path
+            # REQUIRED SETTINGS
+
+            # Choose one of the options below
             'METADATA_AUTO_CONF_URL': '[The auto(dynamic) metadata configuration URL of SAML2]',
             'METADATA_LOCAL_FILE_PATH': '[The metadata configuration file path]',
+            'METADATA': '[A Python dict specifying whatever local and/or remote metadata files you want]',
 
-            # Optional settings below
+            # Dict of dicts, one for each IdP your application supports.
+            'ATTRIBUTES_MAP': {
+                '[entity-id1]': {
+                    'UNIQUE_IDENTIFIER': '[Field to use for the Django User model lookup]',
+                    'USE_NAME_ID': False,  # Set to True to use the value of the NameID attributeas the value for the UNIQUE_IDENTIFIER field
+
+                    # If new user creation is supported, the values below will be used to
+                    # look up the corresponding assertion attributes by name. A new User
+                    # instance will be created with the values of those attributes.
+                    'email': 'Email',
+                    'username': 'UserName',
+                    'first_name': 'FirstName',
+                    'last_name': 'LastName',
+                },
+            },
+
+            # OPTIONAL SETTINGS
+
             'DEFAULT_NEXT_URL': '/admin',  # Custom target redirect URL after the user get logged in. Default to /admin if not set. This setting will be overwritten if you have parameter ?next= specificed in the login URL.
             'CREATE_USER': 'TRUE', # Create a new Django user when a new user logs in. Defaults to True.
             'NEW_USER_PROFILE': {
@@ -147,12 +167,6 @@ How to use?
                 'ACTIVE_STATUS': True,  # The default active status for new users
                 'STAFF_STATUS': True,  # The staff status for new users
                 'SUPERUSER_STATUS': False,  # The superuser status for new users
-            },
-            'ATTRIBUTES_MAP': {  # Change Email/UserName/FirstName/LastName to corresponding SAML2 userprofile attributes.
-                'email': 'Email',
-                'username': 'UserName',
-                'first_name': 'FirstName',
-                'last_name': 'LastName',
             },
             'TRIGGER': {
                 'CREATE_USER': 'path.to.your.new.user.hook.method',
@@ -176,11 +190,28 @@ Explanation
 
 **METADATA_LOCAL_FILE_PATH** SAML2 metadata configuration file path
 
+**METADATA**: 'A Python dict specifying whatever local and/or remote metadata files you want. Useful for providing lists of locations if you support multiple IdPs
+
 **CREATE_USER** Determines if a new Django user should be created for new users.
 
 **NEW_USER_PROFILE** Default settings for newly created users
 
-**ATTRIBUTES_MAP** Mapping of Django user attributes to SAML2 user attributes
+**ATTRIBUTES_MAP** Mapping of attributes for Django user lookup/creation for each supported IdP.
+   - **UNIQUE_IDENTIFIER** Field to use for the Django User lookup, i.e.
+     `User.objects.get(**{UNIQUE_IDENTIFIER=[value]})`. Typically 'username' or 'email'.
+     This field is required for each IdP.
+   - **USE_NAME_ID** If True, use the value of the NameID attribute as the value for
+     the UNIQUE_IDENTIFIER field in the Django User lookup. This is useful if the IdP
+     doesn't send any other attributes in the assertion that could be used for the lookup.
+     Defaults to False.
+   - **email** The attribute to use to get the email value for a newly created user.
+     Defaults to 'Email'. This key has no effect if **CREATE_USER** is False.
+   - **username** The attribute to use to get the username value for a newly created user.
+     Defaults to 'UserName'. This key has no effect if **CREATE_USER** is False.
+   - **first_name** The attribute to use to get the first name value for a newly created user.
+     Defaults to 'FirstName'. This key has no effect if **CREATE_USER** is False.
+   - **last_name** The attribute to use to get the last name value for a newly created user.
+     Defaults to 'LastName'. This key has no effect if **CREATE_USER** is False.
 
 **TRIGGER** Hooks to trigger additional actions during user login and creation
 flows. These TRIGGER hooks are strings containing a `dotted module name <https://docs.python.org/3/tutorial/modules.html#packages>`_
