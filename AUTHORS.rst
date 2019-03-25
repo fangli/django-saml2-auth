@@ -30,3 +30,4 @@ Contributors
 - `Ryan Mahaffey <https://github.com/mahaffey>`_
 - `ayr-ton <https://github.com/ayr-ton>`_
 _ `kevPo <https://github.com/kevPo>`_
+_ `Alex Azevedo <https://github.com/alexazevedo>`_
