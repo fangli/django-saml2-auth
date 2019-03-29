@@ -138,6 +138,7 @@ How to use?
             # Metadata is required, choose either remote url or local file path
             'METADATA_AUTO_CONF_URL': '[The auto(dynamic) metadata configuration URL of SAML2]',
             'METADATA_LOCAL_FILE_PATH': '[The metadata configuration file path]',
+            'METADATA_XML_STRING': '[A stringified XML configuration]',
 
             # Optional settings below
             'DEFAULT_NEXT_URL': '/admin',  # Custom target redirect URL after the user get logged in. Default to /admin if not set. This setting will be overwritten if you have parameter ?next= specificed in the login URL.
@@ -175,6 +176,8 @@ Explanation
 **METADATA_AUTO_CONF_URL** Auto SAML2 metadata configuration URL
 
 **METADATA_LOCAL_FILE_PATH** SAML2 metadata configuration file path
+
+**METADATA_XML_STRING** SAML2 metadata configuration as a string (i.e. stringified XML)
 
 **CREATE_USER** Determines if a new Django user should be created for new users.
 

@@ -16,6 +16,7 @@ from django.conf import settings
 from django.contrib.auth.models import Group
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth import login, logout, get_user_model
+from django.core.exceptions import ImproperlyConfigured
 from django.shortcuts import render
 from django.views.decorators.csrf import csrf_exempt
 from django.template import TemplateDoesNotExist
@@ -79,7 +80,7 @@ def _get_metadata():
         return {
             'local': [settings.SAML2_AUTH['METADATA_LOCAL_FILE_PATH']]
         }
-    else:
+    elif 'METADATA_AUTO_CONF_URL' in settings.SAML2_AUTH:
         return {
             'remote': [
                 {
@@ -87,6 +88,12 @@ def _get_metadata():
                 },
             ]
         }
+    elif 'METADATA_XML_STRING' in settings.SAML2_AUTH:
+        return {
+            'inline': [settings.SAML2_AUTH['METADATA_XML_STRING']]
+        }
+    else:
+        raise ImproperlyConfigured("SAML2 Auth requires a METADATA setting")
 
 
 def _get_saml_client(domain):
