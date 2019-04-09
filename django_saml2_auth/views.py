@@ -214,6 +214,10 @@ def acs(r):
     if target_user.is_active:
         target_user.backend = 'django.contrib.auth.backends.ModelBackend'
         login(r, target_user)
+
+        if settings.SAML2_AUTH.get('TRIGGER', {}).get('AFTER_LOGIN', None):
+            import_string(settings.SAML2_AUTH['TRIGGER']['AFTER_LOGIN'])(r.session, user_identity)
+
     else:
         return HttpResponseRedirect(get_reverse([denied, 'denied', 'django_saml2_auth:denied']))
 
