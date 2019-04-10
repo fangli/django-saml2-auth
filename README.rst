@@ -157,6 +157,7 @@ How to use?
             'TRIGGER': {
                 'CREATE_USER': 'path.to.your.new.user.hook.method',
                 'BEFORE_LOGIN': 'path.to.your.login.hook.method',
+                'AFTER_LOGIN': 'path.to.your.after.login.hook.method',
             },
             'ASSERTION_URL': 'https://mysite.com', # Custom URL to validate incoming SAML requests against
             'ENTITY_ID': 'https://mysite.com/saml2_auth/acs/', # Populates the Issuer element in authn request
@@ -195,6 +196,10 @@ record is created. This method should accept ONE parameter of user dict.
 **TRIGGER.BEFORE_LOGIN** A method to be called when an existing user logs in.
 This method will be called before the user is logged in and after user
 attributes are returned by the SAML2 identity provider. This method should accept ONE parameter of user dict.
+
+**TRIGGER.AFTER_LOGIN** A method to be called when an existing user logs in.
+This method will be called after the user is logged in and after user
+attributes are returned by the SAML2 identity provider. This method should accept TWO parameters of session and user dict.
 
 **ASSERTION_URL** A URL to validate incoming SAML responses against. By default,
 django-saml2-auth will validate the SAML response's Service Provider address
