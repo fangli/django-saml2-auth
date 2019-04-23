@@ -29,4 +29,5 @@ Contributors
 - `BaconAndEggs <https://github.com/BaconAndEggs>`_
 - `Ryan Mahaffey <https://github.com/mahaffey>`_
 - `ayr-ton <https://github.com/ayr-ton>`_
-_ `kevPo <https://github.com/kevPo>`_
+- `kevPo <https://github.com/kevPo>`_
+- `chriskj <https://github.com/chriskj>`_
