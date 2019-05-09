@@ -28,13 +28,6 @@ from rest_auth.utils import jwt_encode
 # default User or custom User. Now both will work.
 User = get_user_model()
 
-try:
-    import urllib2 as _urllib
-except:
-    import urllib.request as _urllib
-    import urllib.error
-    import urllib.parse
-
 if parse_version(get_version()) >= parse_version('1.7'):
     from django.utils.module_loading import import_string
 else:
@@ -185,7 +178,7 @@ def acs(r):
             import_string(settings.SAML2_AUTH['TRIGGER']['BEFORE_LOGIN'])(user_identity)
     except User.DoesNotExist:
         new_user_should_be_created = settings.SAML2_AUTH.get('CREATE_USER', True)
-        if new_user_should_be_created: 
+        if new_user_should_be_created:
             target_user = _create_new_user(user_name, user_email, user_first_name, user_last_name)
             if settings.SAML2_AUTH.get('TRIGGER', {}).get('CREATE_USER', None):
                 import_string(settings.SAML2_AUTH['TRIGGER']['CREATE_USER'])(user_identity)
