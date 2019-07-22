@@ -270,9 +270,8 @@ I created this plugin originally for Okta.
 
 The ``METADATA_AUTO_CONF_URL`` needed in ``settings.py`` can be found in the Okta
 Web UI by navigating to the SAML2 app's ``Sign On`` tab. In the ``Settings`` box,
-you should see:
+you should see::
 
-    .. code-block: markdown
     Identity Provider metadata is available if this application supports dynamic configuration.
 
 The ``Identity Provider metadata`` link is the ``METADATA_AUTO_CONF_URL``.
