@@ -276,9 +276,9 @@ you should see::
 
 The ``Identity Provider metadata`` link is the ``METADATA_AUTO_CONF_URL``.
 
-More information can be found in the `Okta Developer Documentation`.
+More information can be found in the `Okta Developer Documentation`_.
 
-.. `Okta developer documentation`: https://developer.okta.com/docs/guides/saml-application-setup/overview/
+..  `Okta developer documentation`: https://developer.okta.com/docs/guides/saml-application-setup/overview/
 
 
 How to Contribute
