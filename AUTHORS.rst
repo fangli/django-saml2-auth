@@ -31,3 +31,4 @@ Contributors
 - `ayr-ton <https://github.com/ayr-ton>`_
 - `kevPo <https://github.com/kevPo>`_
 - `chriskj <https://github.com/chriskj>`_
+- `Griffin J Rademacher <https://github.com/favorable-mutation>`_
