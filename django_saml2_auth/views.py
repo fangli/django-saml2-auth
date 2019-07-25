@@ -185,7 +185,7 @@ def acs(r):
             import_string(settings.SAML2_AUTH['TRIGGER']['BEFORE_LOGIN'])(user_identity)
     except User.DoesNotExist:
         new_user_should_be_created = settings.SAML2_AUTH.get('CREATE_USER', True)
-        if new_user_should_be_created: 
+        if new_user_should_be_created:
             target_user = _create_new_user(user_name, user_email, user_first_name, user_last_name)
             if settings.SAML2_AUTH.get('TRIGGER', {}).get('CREATE_USER', None):
                 import_string(settings.SAML2_AUTH['TRIGGER']['CREATE_USER'])(user_identity)
@@ -236,8 +236,9 @@ def signin(r):
         next_url = r.GET.get('next', _default_next_url())
 
     # Only permit signin requests where the next_url is a safe URL
+    allowed_hosts = set(settings.SAML2_AUTH.get('ALLOWED_REDIRECT_HOSTS') or [])
     if parse_version(get_version()) >= parse_version('2.0'):
-        url_ok = is_safe_url(next_url, None)
+        url_ok = is_safe_url(next_url, allowed_hosts)
     else:
         url_ok = is_safe_url(next_url)
 

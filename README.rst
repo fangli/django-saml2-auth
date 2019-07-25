@@ -163,6 +163,7 @@ How to use?
             'NAME_ID_FORMAT': FormatString, # Sets the Format property of authn NameIDPolicy element
             'USE_JWT': False, # Set this to True if you are running a Single Page Application (SPA) with Django Rest Framework (DRF), and are using JWT authentication to authorize client users
             'FRONTEND_URL': 'https://myfrontendclient.com', # Redirect URL for the client if you are using JWT auth with DRF. See explanation below
+            'ALLOWED_REDIRECT_HOSTS': ["https://myfrontendclient.com"] # Allowed hosts to redirect to using the ?next parameter
         }
 
 #. In your SAML2 SSO identity provider, set the Single-sign-on URL and Audience
