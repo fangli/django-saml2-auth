@@ -217,7 +217,8 @@ def acs(r):
         is_new_user = True
 
     # Optionally update this user's group assignments
-    group_attribute = settings.SAML2_AUTH.get('ATTRIBUTES_MAP', {}).get('groups', None)
+    group_attribute = settings.SAML2_AUTH.get(
+        'ATTRIBUTES_MAP', {}).get('groups', None)
     group_map = settings.SAML2_AUTH.get('GROUPS_MAP', None)
 
     if group_attribute is not None and group_attribute in user_identity:
@@ -231,7 +232,7 @@ def acs(r):
                 group_name_django = group_name
 
             try:
-                groups.append( Group.objects.get(name=group_name_django) )
+                groups.append(Group.objects.get(name=group_name_django))
             except Group.DoesNotExist:
                 pass
 
@@ -290,8 +291,10 @@ def signin(r):
         next_url = r.GET.get('next', _default_next_url())
 
     # Only permit signin requests where the next_url is a safe URL
+    allowed_hosts = set(settings.SAML2_AUTH.get(
+        'ALLOWED_REDIRECT_HOSTS') or [])
     if parse_version(get_version()) >= parse_version('2.0'):
-        url_ok = is_safe_url(next_url, None)
+        url_ok = is_safe_url(next_url, allowed_hosts)
     else:
         url_ok = is_safe_url(next_url)
 
