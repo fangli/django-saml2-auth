@@ -260,6 +260,23 @@ You should see :
 
 The `Identity Provider metadata` link is the METADATA_AUTO_CONF_URL.
 
+For Azure AD Users
+==================
+
+The following settings will work 
+.. code-block:: python
+    SAML2_AUTH = {
+        "METADATA_AUTO_CONF_URL": "<YOUR METADATA URL>",
+        "ENTITY_ID": "<ENTITY ID (FOUND IN METADATA)>",
+        "ATTRIBUTES_MAP": {
+            "email": "http://schemas.xmlsoap.org/ws/2005/05/identity/claims/emailaddress",
+            "username": "http://schemas.xmlsoap.org/ws/2005/05/identity/claims/emailaddress",
+            "first_name": "http://schemas.xmlsoap.org/ws/2005/05/identity/claims/displayname",
+            "last_name": "http://schemas.xmlsoap.org/ws/2005/05/identity/claims/displayname",
+        },
+    }
+
+Note that the attributes map users the email address as the username - you can adjust as needed based on the attributes returned.
 
 How to Contribute
 =================
