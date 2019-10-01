@@ -32,3 +32,4 @@ Contributors
 - `kevPo <https://github.com/kevPo>`_
 - `chriskj <https://github.com/chriskj>`_
 - `Griffin J Rademacher <https://github.com/favorable-mutation>`_
+- `Akshit Dhar <https://github.com/akshit-wwstay>` _
