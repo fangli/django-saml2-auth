@@ -191,8 +191,17 @@ def acs(r):
     is_new_user = False
 
     try:
-        target_user = User.objects.get(
-            **{getattr(User, 'username', getattr(User, 'USERNAME_FIELD', None)): user_name})
+        # check whether the getting of the user object has to be case_sensitive or not
+        # by default LOGIN_CASE_SENSITIVE = True
+        login_case_sensitive = settings.SAML2_AUTH.get(
+            'LOGIN_CASE_SENSITIVE', True)
+        target_user = None
+        if login_case_sensitive:
+            target_user = target_user = User.objects.get(
+                **{getattr(User, 'username', getattr(User, 'USERNAME_FIELD', None)): user_name})
+        else:
+            target_user = target_user = User.objects.get(
+                **{getattr(User, 'username__iexact', getattr(User, 'USERNAME_FIELD', None)): user_name})
         if settings.SAML2_AUTH.get('TRIGGER', {}).get('BEFORE_LOGIN', None):
             import_string(settings.SAML2_AUTH['TRIGGER']['BEFORE_LOGIN'])(
                 user_identity)
@@ -216,7 +225,8 @@ def acs(r):
         login(r, target_user)
 
         if settings.SAML2_AUTH.get('TRIGGER', {}).get('AFTER_LOGIN', None):
-            import_string(settings.SAML2_AUTH['TRIGGER']['AFTER_LOGIN'])(r.session, user_identity)
+            import_string(settings.SAML2_AUTH['TRIGGER']['AFTER_LOGIN'])(
+                r.session, user_identity)
 
     else:
         return HttpResponseRedirect(get_reverse([denied, 'denied', 'django_saml2_auth:denied']))
