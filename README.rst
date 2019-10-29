@@ -223,7 +223,7 @@ Default value if not specified is 'urn:oasis:names:tc:SAML:2.0:nameid-format:tra
 
 **FRONTEND_URL** If USE_JWT is True, you should set the URL of where your frontend is located (will default to DEFAULT_NEXT_URL if you fail to do so). Once the client is authenticated through the SAML/SSO, your client is redirected to the FRONTEND_URL with the user id (uid) and JWT token (token) as query parameters.
 Example: 'https://myfrontendclient.com/?uid=<user id>&token=<jwt token>'
-With these params your client can now authenticate will server resources.
+With these params your client can now authenticate with server resources.
 
 **WANT_ASSERTIONS_SIGNED** Set this to the boolean False if your provider doesn't sign each assertion.
 
