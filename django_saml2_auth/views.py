@@ -29,13 +29,6 @@ from rest_auth.utils import jwt_encode
 # default User or custom User. Now both will work.
 User = get_user_model()
 
-try:
-    import urllib2 as _urllib
-except:
-    import urllib.request as _urllib
-    import urllib.error
-    import urllib.parse
-
 if parse_version(get_version()) >= parse_version('1.7'):
     from django.utils.module_loading import import_string
 else:
