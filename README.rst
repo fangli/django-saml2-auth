@@ -153,6 +153,10 @@ How to use?
                 'username': 'UserName',
                 'first_name': 'FirstName',
                 'last_name': 'LastName',
+                'groups': 'Groups', # Optional
+            },
+            'GROUPS_MAP': {  # Optionally allow mapping SAML2 Groups to Django Groups
+                'SAML Group Name': 'Django Group Name',
             },
             'TRIGGER': {
                 'CREATE_USER': 'path.to.your.new.user.hook.method',

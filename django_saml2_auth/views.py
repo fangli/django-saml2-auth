@@ -216,6 +216,30 @@ def acs(r):
                 user_identity)
         is_new_user = True
 
+    # Optionally update this user's group assignments
+    group_attribute = settings.SAML2_AUTH.get('ATTRIBUTES_MAP', {}).get('groups', None)
+    group_map = settings.SAML2_AUTH.get('GROUPS_MAP', None)
+
+    if group_attribute is not None and group_attribute in user_identity:
+        groups = []
+
+        for group_name in user_identity[group_attribute]:
+            # Group names can optionally be mapped to different names in Django
+            if group_map is not None and group_name in group_map:
+                group_name_django = group_map[group_name]
+            else:
+                group_name_django = group_name
+
+            try:
+                groups.append( Group.objects.get(name=group_name_django) )
+            except Group.DoesNotExist:
+                pass
+
+        if parse_version(get_version()) >= parse_version('2.0'):
+            target_user.groups.set(groups)
+        else:
+            target_user.groups = groups
+
     r.session.flush()
     target_user = User.objects.get(username=user_name)
 
