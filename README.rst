@@ -171,6 +171,7 @@ How to use?
             'LOGIN_CASE_SENSITIVE': True, # whether of not to get the user in case_sentive mode
             'WANT_ASSERTIONS_SIGNED': True, # Require each assertion to be signed
             'WANT_RESPONSE_SIGNED': False, # Require response to be signed
+            'ALLOWED_REDIRECT_HOSTS': ["https://myfrontendclient.com"] # Allowed hosts to redirect to using the ?next parameter
         }
 
 #. In your SAML2 SSO identity provider, set the Single-sign-on URL and Audience
