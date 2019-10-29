@@ -165,6 +165,8 @@ How to use?
             'USE_JWT': False, # Set this to True if you are running a Single Page Application (SPA) with Django Rest Framework (DRF), and are using JWT authentication to authorize client users
             'FRONTEND_URL': 'https://myfrontendclient.com', # Redirect URL for the client if you are using JWT auth with DRF. See explanation below
             'LOGIN_CASE_SENSITIVE': True, # whether of not to get the user in case_sentive mode
+            'WANT_ASSERTIONS_SIGNED': True, # Require each assertion to be signed
+            'WANT_RESPONSE_SIGNED': False, # Require response to be signed
         }
 
 #. In your SAML2 SSO identity provider, set the Single-sign-on URL and Audience
@@ -218,6 +220,10 @@ Default value if not specified is 'urn:oasis:names:tc:SAML:2.0:nameid-format:tra
 **FRONTEND_URL** If USE_JWT is True, you should set the URL of where your frontend is located (will default to DEFAULT_NEXT_URL if you fail to do so). Once the client is authenticated through the SAML/SSO, your client is redirected to the FRONTEND_URL with the user id (uid) and JWT token (token) as query parameters.
 Example: 'https://myfrontendclient.com/?uid=<user id>&token=<jwt token>'
 With these params your client can now authenticate will server resources.
+
+**WANT_ASSERTIONS_SIGNED** Set this to the boolean False if your provider doesn't sign each assertion.
+
+**WANT_RESPONSE_SIGNED** Set this to the boolean True if you require your provider to sign the response.
 
 Customize
 =========
