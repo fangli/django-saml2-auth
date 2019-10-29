@@ -45,7 +45,7 @@ We accept your donations by clicking the awesome |star| instead of any physical 
 Dependencies
 ============
 
-This plugin is compatible with Django 1.6/1.7/1.8/1.9/1.10. The `pysaml2` Python
+This plugin is compatible with Django 1.6/1.7/1.8/1.9/1.10. The ``pysaml2`` Python
 module is required.
 
 
@@ -53,7 +53,7 @@ module is required.
 Install
 =======
 
-You can install this plugin via `pip`:
+You can install this plugin via ``pip``:
 
 .. code-block:: bash
 
@@ -99,7 +99,7 @@ How to use?
         import django_saml2_auth.views
 
 #. Override the default login page in the root urls.py file, by adding these
-   lines **BEFORE** any `urlpatterns`:
+   lines **BEFORE** any ``urlpatterns``:
 
     .. code-block:: python
 
@@ -232,7 +232,7 @@ With these params your client can now authenticate with server resources.
 Customize
 =========
 
-The default permission `denied` page and user `welcome` page can be
+The default permission ``denied`` page and user ``welcome`` page can be
 overridden.
 
 To override these pages put a template named 'django_saml2_auth/welcome.html'
@@ -242,10 +242,10 @@ If a 'django_saml2_auth/welcome.html' template exists, that page will be shown
 to the user upon login instead of the user being redirected to the previous
 visited page. This welcome page can contain some first-visit notes and welcome
 words. The `Django user object <https://docs.djangoproject.com/en/1.9/ref/contrib/auth/#django.contrib.auth.models.User>`_
-is available within the template as the `user` template variable.
+is available within the template as the ``user`` template variable.
 
 To enable a logout page, add the following lines to urls.py, before any
-`urlpatterns`:
+``urlpatterns``:
 
 .. code-block:: python
 
@@ -259,8 +259,8 @@ To override the built in signout page put a template named
 'django_saml2_auth/signout.html' in your project's template folder.
 
 If your SAML2 identity provider uses user attribute names other than the
-defaults listed in the `settings.py` `ATTRIBUTES_MAP`, update them in
-`settings.py`.
+defaults listed in the ``settings.py`` ``ATTRIBUTES_MAP``, update them in
+``settings.py``.
 
 
 For Okta Users
@@ -268,13 +268,17 @@ For Okta Users
 
 I created this plugin originally for Okta.
 
-The METADATA_AUTO_CONF_URL needed in `settings.py` can be found in the Okta
-web UI by navigating to the SAML2 app's `Sign On` tab, in the Settings box.
-You should see :
+The ``METADATA_AUTO_CONF_URL`` needed in ``settings.py`` can be found in the Okta
+Web UI by navigating to the SAML2 app's ``Sign On`` tab. In the ``Settings`` box,
+you should see::
 
-`Identity Provider metadata is available if this application supports dynamic configuration.`
+    Identity Provider metadata is available if this application supports dynamic configuration.
 
-The `Identity Provider metadata` link is the METADATA_AUTO_CONF_URL.
+The ``Identity Provider metadata`` link is the ``METADATA_AUTO_CONF_URL``.
+
+More information can be found in the `Okta Developer Documentation`_.
+
+..  _`Okta developer documentation`: https://developer.okta.com/docs/guides/saml-application-setup/overview/
 
 
 How to Contribute
