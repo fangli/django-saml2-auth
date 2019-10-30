@@ -25,6 +25,13 @@ from django.utils.http import is_safe_url
 
 from rest_auth.utils import jwt_encode
 
+try:
+    import urlparse as _urlparse
+    from urllib import unquote
+except:
+    import urllib.parse as _urlparse
+    from urllib.parse import unquote
+
 
 # default User or custom User. Now both will work.
 User = get_user_model()
@@ -277,12 +284,6 @@ def acs(r):
 
 
 def signin(r):
-    try:
-        import urlparse as _urlparse
-        from urllib import unquote
-    except:
-        import urllib.parse as _urlparse
-        from urllib.parse import unquote
     next_url = r.GET.get('next', _default_next_url())
 
     try:
