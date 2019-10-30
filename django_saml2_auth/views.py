@@ -25,15 +25,25 @@ from django.utils.http import is_safe_url
 
 from rest_auth.utils import jwt_encode
 
+try:
+    import urlparse as _urlparse
+    from urllib import unquote
+except:
+    import urllib.parse as _urlparse
+    from urllib.parse import unquote
 
-# default User or custom User. Now both will work.
-User = get_user_model()
+if parse_version(get_version()) >= parse_version('1.10'):
+    from django.urls import NoReverseMatch, reverse
+else:
+    from django.core.urlresolvers import NoReverseMatch, reverse
 
 if parse_version(get_version()) >= parse_version('1.7'):
     from django.utils.module_loading import import_string
 else:
     from django.utils.module_loading import import_by_path as import_string
 
+
+# default User or custom User. Now both will work.
 User = get_user_model()
 
 
@@ -54,12 +64,7 @@ def get_current_domain(r):
 
 
 def get_reverse(objs):
-    '''In order to support different django version, I have to do this '''
-    if parse_version(get_version()) >= parse_version('1.10'):
-        from django.urls import NoReverseMatch, reverse
-    else:
-        from django.core.urlresolvers import NoReverseMatch, reverse
-    if objs.__class__.__name__ not in ['list', 'tuple']:
+    if isinstance(objs, ('list', 'tuple')):
         objs = [objs]
 
     for obj in objs:
@@ -196,12 +201,12 @@ def acs(r):
         # by default LOGIN_CASE_SENSITIVE = True
         login_case_sensitive = settings.SAML2_AUTH.get(
             'LOGIN_CASE_SENSITIVE', True)
-        target_user = None
+
         if login_case_sensitive:
-            target_user = target_user = User.objects.get(
+            User.objects.get(
                 **{getattr(User, 'username', getattr(User, 'USERNAME_FIELD', None)): user_name})
         else:
-            target_user = target_user = User.objects.get(
+            target_user = User.objects.get(
                 **{getattr(User, 'username__iexact', getattr(User, 'USERNAME_FIELD', None)): user_name})
         if settings.SAML2_AUTH.get('TRIGGER', {}).get('BEFORE_LOGIN', None):
             import_string(settings.SAML2_AUTH['TRIGGER']['BEFORE_LOGIN'])(
@@ -223,12 +228,12 @@ def acs(r):
         'ATTRIBUTES_MAP', {}).get('groups', None)
     group_map = settings.SAML2_AUTH.get('GROUPS_MAP', None)
 
-    if group_attribute is not None and group_attribute in user_identity:
+    if group_attribute and group_attribute in user_identity:
         groups = []
 
         for group_name in user_identity[group_attribute]:
             # Group names can optionally be mapped to different names in Django
-            if group_map is not None and group_name in group_map:
+            if group_map and group_name in group_map:
                 group_name_django = group_map[group_name]
             else:
                 group_name_django = group_name
@@ -277,12 +282,6 @@ def acs(r):
 
 
 def signin(r):
-    try:
-        import urlparse as _urlparse
-        from urllib import unquote
-    except:
-        import urllib.parse as _urlparse
-        from urllib.parse import unquote
     next_url = r.GET.get('next', _default_next_url())
 
     try:
@@ -310,10 +309,8 @@ def signin(r):
 
     redirect_url = None
 
-    for key, value in info['headers']:
-        if key == 'Location':
-            redirect_url = value
-            break
+    if 'Location' in info['headers']:
+        redirect_url = info['headers']['Location']
 
     return HttpResponseRedirect(redirect_url)
 

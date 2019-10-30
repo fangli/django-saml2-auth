@@ -29,9 +29,6 @@ setup(
     license='Apache 2.0',
 
     classifiers=[
-        #   3 - Alpha
-        #   4 - Beta
-        #   5 - Production/Stable
         'Development Status :: 5 - Production/Stable',
 
         'Intended Audience :: Developers',
@@ -54,13 +51,14 @@ setup(
         'Programming Language :: Python :: 3.4',
         'Programming Language :: Python :: 3.5',
         'Programming Language :: Python :: 3.6',
+        'Programming Language :: Python :: 3.7',
     ],
 
     keywords='Django SAML2 Authentication Made Easy, integrate with SAML2 SSO such as Okta easily',
 
     packages=find_packages(),
 
-    install_requires=['pysaml2>=4.5.0',
+    install_requires=['pysaml2>=4.8.0',
                       'djangorestframework-jwt',
                       'django-rest-auth', ],
     include_package_data=True,
