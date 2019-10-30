@@ -311,10 +311,8 @@ def signin(r):
 
     redirect_url = None
 
-    for key, value in info['headers']:
-        if key == 'Location':
-            redirect_url = value
-            break
+    if 'Location' in info['headers']:
+        redirect_url = info['headers']['Location']
 
     return HttpResponseRedirect(redirect_url)
 
