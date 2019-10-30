@@ -32,15 +32,18 @@ except:
     import urllib.parse as _urlparse
     from urllib.parse import unquote
 
-
-# default User or custom User. Now both will work.
-User = get_user_model()
+if parse_version(get_version()) >= parse_version('1.10'):
+    from django.urls import NoReverseMatch, reverse
+else:
+    from django.core.urlresolvers import NoReverseMatch, reverse
 
 if parse_version(get_version()) >= parse_version('1.7'):
     from django.utils.module_loading import import_string
 else:
     from django.utils.module_loading import import_by_path as import_string
 
+
+# default User or custom User. Now both will work.
 User = get_user_model()
 
 
@@ -61,11 +64,6 @@ def get_current_domain(r):
 
 
 def get_reverse(objs):
-    '''In order to support different django version, I have to do this '''
-    if parse_version(get_version()) >= parse_version('1.10'):
-        from django.urls import NoReverseMatch, reverse
-    else:
-        from django.core.urlresolvers import NoReverseMatch, reverse
     if objs.__class__.__name__ not in ['list', 'tuple']:
         objs = [objs]
 
