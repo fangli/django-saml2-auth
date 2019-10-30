@@ -196,12 +196,12 @@ def acs(r):
         # by default LOGIN_CASE_SENSITIVE = True
         login_case_sensitive = settings.SAML2_AUTH.get(
             'LOGIN_CASE_SENSITIVE', True)
-        target_user = None
+
         if login_case_sensitive:
-            target_user = target_user = User.objects.get(
+            User.objects.get(
                 **{getattr(User, 'username', getattr(User, 'USERNAME_FIELD', None)): user_name})
         else:
-            target_user = target_user = User.objects.get(
+            target_user = User.objects.get(
                 **{getattr(User, 'username__iexact', getattr(User, 'USERNAME_FIELD', None)): user_name})
         if settings.SAML2_AUTH.get('TRIGGER', {}).get('BEFORE_LOGIN', None):
             import_string(settings.SAML2_AUTH['TRIGGER']['BEFORE_LOGIN'])(
