@@ -2,28 +2,21 @@
 # -*- coding:utf-8 -*-
 
 
-from saml2 import (
-    BINDING_HTTP_POST,
-    BINDING_HTTP_REDIRECT,
-    entity,
-)
+from django import get_version
+from django.conf import settings
+from django.contrib.auth import get_user_model, login, logout
+from django.contrib.auth.decorators import login_required
+from django.contrib.auth.models import Group
+from django.http import HttpResponseRedirect
+from django.shortcuts import render
+from django.template import TemplateDoesNotExist
+from django.utils.http import is_safe_url
+from django.views.decorators.csrf import csrf_exempt
+from pkg_resources import parse_version
+from rest_auth.utils import jwt_encode
+from saml2 import BINDING_HTTP_POST, BINDING_HTTP_REDIRECT, entity
 from saml2.client import Saml2Client
 from saml2.config import Config as Saml2Config
-
-from django import get_version
-from pkg_resources import parse_version
-from django.conf import settings
-from django.contrib.auth import get_user_model
-from django.contrib.auth.models import Group
-from django.contrib.auth.decorators import login_required
-from django.contrib.auth import login, logout, get_user_model
-from django.shortcuts import render
-from django.views.decorators.csrf import csrf_exempt
-from django.template import TemplateDoesNotExist
-from django.http import HttpResponseRedirect
-from django.utils.http import is_safe_url
-
-from rest_auth.utils import jwt_encode
 
 try:
     import urlparse as _urlparse
