@@ -57,7 +57,7 @@ def get_current_domain(r):
 
 
 def get_reverse(objs):
-    if isinstance(objs, ('list', 'tuple')):
+    if isinstance(objs, (list, tuple)):
         objs = [objs]
 
     for obj in objs:
