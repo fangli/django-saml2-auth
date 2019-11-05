@@ -188,6 +188,7 @@ def acs(r):
 
     target_user = None
     is_new_user = False
+    login_case_sensitive = True
 
     try:
         # check whether the getting of the user object has to be case_sensitive or not
@@ -201,20 +202,24 @@ def acs(r):
         else:
             target_user = User.objects.get(
                 {User.USERNAME_FIELD__iexact: user_name})
-        if settings.SAML2_AUTH.get('TRIGGER', {}).get('BEFORE_LOGIN', None):
-            import_string(settings.SAML2_AUTH['TRIGGER']['BEFORE_LOGIN'])(
-                user_identity)
     except User.DoesNotExist:
-        if settings.SAML2_AUTH.get('CALLABLE', {}).get('CREATE_USER', None):
-            import_string(settings.SAML2_AUTH['CALLABLE']['BEFORE_LOGIN'])(
-                user_identity)
-        else:
+        new_user_should_be_created = settings.SAML2_AUTH.get(
+            'CREATE_USER', True)
+        if new_user_should_be_created:
             target_user = _create_new_user(
                 user_name, user_email, user_first_name, user_last_name)
-        if settings.SAML2_AUTH.get('TRIGGER', {}).get('CREATE_USER', None):
-            import_string(settings.SAML2_AUTH['TRIGGER']['CREATE_USER'])(
-                user_identity)
-        is_new_user = True
+
+            if settings.SAML2_AUTH.get('TRIGGER', {}).get('CREATE_USER', None):
+                import_string(settings.SAML2_AUTH['TRIGGER']['CREATE_USER'])(
+                    user_identity)
+
+            is_new_user = True
+        else:
+            return HttpResponseRedirect(get_reverse([denied, 'denied', 'django_saml2_auth:denied']))
+
+    if settings.SAML2_AUTH.get('TRIGGER', {}).get('BEFORE_LOGIN', None):
+        import_string(settings.SAML2_AUTH['TRIGGER']['BEFORE_LOGIN'])(
+            user_identity)
 
     # Optionally update this user's group assignments
     group_attribute = settings.SAML2_AUTH.get(
