@@ -163,7 +163,7 @@ def acs(r):
     resp = r.POST.get('SAMLResponse', None)
     next_url = r.session.get('login_next_url', _default_next_url())
     # If relayState params is passed, use that else consider the previous 'next_url'
-    next_url = r.POST.get('RelayState', next_url)
+    next_url = r.POST.get('RelayState') or next_url
 
     if not resp:
         return HttpResponseRedirect(get_reverse([denied, 'denied', 'django_saml2_auth:denied']))
@@ -196,11 +196,11 @@ def acs(r):
             'LOGIN_CASE_SENSITIVE', True)
 
         if login_case_sensitive:
-            User.objects.get(
-                **{getattr(User, 'username', getattr(User, 'USERNAME_FIELD', None)): user_name})
+            target_user = User.objects.get(
+                **{User.USERNAME_FIELD: user_name})
         else:
             target_user = User.objects.get(
-                **{getattr(User, 'username__iexact', getattr(User, 'USERNAME_FIELD', None)): user_name})
+                {User.USERNAME_FIELD__iexact: user_name})
         if settings.SAML2_AUTH.get('TRIGGER', {}).get('BEFORE_LOGIN', None):
             import_string(settings.SAML2_AUTH['TRIGGER']['BEFORE_LOGIN'])(
                 user_identity)
@@ -242,7 +242,13 @@ def acs(r):
             target_user.groups = groups
 
     r.session.flush()
-    target_user = User.objects.get(username=user_name)
+
+    if login_case_sensitive:
+        target_user = User.objects.get(
+            **{User.USERNAME_FIELD: user_name})
+    else:
+        target_user = User.objects.get(
+            {User.USERNAME_FIELD__iexact: user_name})
 
     if target_user.is_active:
         target_user.backend = 'django.contrib.auth.backends.ModelBackend'
