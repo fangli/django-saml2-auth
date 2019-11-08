@@ -160,8 +160,8 @@ def _create_new_user(username, email, firstname, lastname):
 @csrf_exempt
 def acs(r):
     saml_client = _get_saml_client(get_current_domain(r))
-    resp = r.POST.get('SAMLResponse', None)
-    next_url = r.session.get('login_next_url', _default_next_url())
+    resp = r.POST.get('SAMLResponse') or None
+    next_url = r.session.get('login_next_url') or _default_next_url()
     # If relayState params is passed, use that else consider the previous 'next_url'
     next_url = r.POST.get('RelayState') or next_url
 
@@ -272,7 +272,7 @@ def acs(r):
         query = '?uid={}&token={}'.format(target_user.id, jwt_token)
 
         frontend_url = settings.SAML2_AUTH.get(
-            'FRONTEND_URL', next_url)
+            'FRONTEND_URL') or next_url
 
         return HttpResponseRedirect(frontend_url+query)
 
@@ -286,14 +286,14 @@ def acs(r):
 
 
 def signin(r):
-    next_url = r.GET.get('next', _default_next_url())
+    next_url = r.GET.get('next') or _default_next_url()
 
     try:
         if 'next=' in unquote(next_url):
             next_url = _urlparse.parse_qs(
                 _urlparse.urlparse(unquote(next_url)).query)['next'][0]
     except:
-        next_url = r.GET.get('next', _default_next_url())
+        next_url = r.GET.get('next') or _default_next_url()
 
     # Only permit signin requests where the next_url is a safe URL
     allowed_hosts = set(settings.SAML2_AUTH.get(
