@@ -93,12 +93,6 @@ def _get_saml_client(domain):
     acs_url = domain + get_reverse([acs, 'acs', 'django_saml2_auth:acs'])
     metadata = _get_metadata()
 
-    if settings.SAML2_AUTH.get('CERT_FILE'):
-        saml_settings['cert_file'] = settings.SAML2_AUTH['CERT_FILE']
-
-    if settings.SAML2_AUTH.get('KEY_FILE'):
-        saml_settings['key_file'] = settings.SAML2_AUTH['KEY_FILE']
-
     authn_requests_signed = settings.SAML2_AUTH.get('AUTHN_REQUESTS_SIGNED', False)
 
     saml_settings = {
@@ -125,6 +119,12 @@ def _get_saml_client(domain):
 
     if 'NAME_ID_FORMAT' in settings.SAML2_AUTH:
         saml_settings['service']['sp']['name_id_format'] = settings.SAML2_AUTH['NAME_ID_FORMAT']
+
+    if settings.SAML2_AUTH.get('CERT_FILE'):
+        saml_settings['cert_file'] = settings.SAML2_AUTH['CERT_FILE']
+
+    if settings.SAML2_AUTH.get('KEY_FILE'):
+        saml_settings['key_file'] = settings.SAML2_AUTH['KEY_FILE']
 
     spConfig = Saml2Config()
     spConfig.load(saml_settings)
