@@ -163,6 +163,9 @@ How to use?
             'NAME_ID_FORMAT': FormatString, # Sets the Format property of authn NameIDPolicy element
             'USE_JWT': False, # Set this to True if you are running a Single Page Application (SPA) with Django Rest Framework (DRF), and are using JWT authentication to authorize client users
             'FRONTEND_URL': 'https://myfrontendclient.com', # Redirect URL for the client if you are using JWT auth with DRF. See explanation below
+            'CERT_FILE': ''  # Public part of the service private/public key pair. Must be a PEM formatted certificate chain file.
+            'KEY_FILE':  ''  # The name of a PEM formatted file that contains the private key of the service. This is presently used both to encrypt/sign assertions and as the client key in an HTTPS session.
+            'AUTHN_REQUESTS_SIGNED': False  # Indicates if the Authentication Requests sent by this SP should be signed by default. 
         }
 
 #. In your SAML2 SSO identity provider, set the Single-sign-on URL and Audience

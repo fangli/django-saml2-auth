@@ -93,6 +93,14 @@ def _get_saml_client(domain):
     acs_url = domain + get_reverse([acs, 'acs', 'django_saml2_auth:acs'])
     metadata = _get_metadata()
 
+    if settings.SAML2_AUTH.get('CERT_FILE'):
+        saml_settings['cert_file'] = settings.SAML2_AUTH['CERT_FILE']
+
+    if settings.SAML2_AUTH.get('KEY_FILE'):
+        saml_settings['key_file'] = settings.SAML2_AUTH['KEY_FILE']
+
+    authn_requests_signed = settings.SAML2_AUTH.get('AUTHN_REQUESTS_SIGNED', False)
+
     saml_settings = {
         'metadata': metadata,
         'service': {
@@ -104,7 +112,7 @@ def _get_saml_client(domain):
                     ],
                 },
                 'allow_unsolicited': True,
-                'authn_requests_signed': False,
+                'authn_requests_signed': authn_requests_signed,
                 'logout_requests_signed': True,
                 'want_assertions_signed': True,
                 'want_response_signed': False,
