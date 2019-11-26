@@ -276,7 +276,7 @@ def acs(r):
     if settings.SAML2_AUTH.get('USE_JWT') is True:
         # We use JWT auth send token to frontend
         jwt_token = jwt_encode(target_user)
-        query = '?uid={}&token={}'.format(target_user.id, jwt_token)
+        query = '?token={}'.format(jwt_token)
 
         frontend_url = settings.SAML2_AUTH.get(
             'FRONTEND_URL') or next_url
