@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 # -*- coding:utf-8 -*-
 
+from datetime import datetime, timedelta
 
 from django import get_version
 from django.conf import settings
@@ -276,8 +277,15 @@ def acs(r):
     if settings.SAML2_AUTH.get('USE_JWT') is True:
         # We use JWT auth send token to frontend
         jwt_secret = settings.SAML2_AUTH.get('JWT_SECRET')
+        jwt_expiration = settings.SAML2_AUTH.get(
+            'JWT_EXP', 60)  # default: 1 minute
+        payload = {
+            'email': target_user.email,
+            'exp': (datetime.utcnow() +
+                    timedelta(seconds=jwt_expiration)).timestamp()
+        }
         jwt_token = jwt.encode(
-            target_user, jwt_secret, algorithm='HS256')
+            payload, jwt_secret, algorithm='HS256')
         query = '?token={}'.format(jwt_token)
 
         frontend_url = settings.SAML2_AUTH.get(
