@@ -125,6 +125,14 @@ def _get_saml_client(domain):
     return saml_client
 
 
+def run_hook(func_path, *args, **kwargs):
+    pkg = func_path.split('.')
+    klass_path = '.'.join(pkg[:-1])
+    func = pkg[-1]
+    klass = import_string(klass_path)
+    return getattr(klass, func)(*args, **kwargs)
+
+
 @login_required
 def welcome(r):
     try:
@@ -210,16 +218,15 @@ def acs(r):
                 user_name, user_email, user_first_name, user_last_name)
 
             if settings.SAML2_AUTH.get('TRIGGER', {}).get('CREATE_USER', None):
-                import_string(settings.SAML2_AUTH['TRIGGER']['CREATE_USER'])(
-                    user_identity)
+                run_hook(settings.SAML2_AUTH['TRIGGER']
+                         ['CREATE_USER'], user_identity)
 
             is_new_user = True
         else:
             return HttpResponseRedirect(get_reverse([denied, 'denied', 'django_saml2_auth:denied']))
 
     if settings.SAML2_AUTH.get('TRIGGER', {}).get('BEFORE_LOGIN', None):
-        import_string(settings.SAML2_AUTH['TRIGGER']['BEFORE_LOGIN'])(
-            user_identity)
+        run_hook(settings.SAML2_AUTH['TRIGGER']['BEFORE_LOGIN'], user_identity)
 
     # Optionally update this user's group assignments
     group_attribute = settings.SAML2_AUTH.get(
@@ -260,8 +267,8 @@ def acs(r):
         login(r, target_user)
 
         if settings.SAML2_AUTH.get('TRIGGER', {}).get('AFTER_LOGIN', None):
-            import_string(settings.SAML2_AUTH['TRIGGER']['AFTER_LOGIN'])(
-                r.session, user_identity)
+            run_hook(settings.SAML2_AUTH['TRIGGER']['AFTER_LOGIN'],
+                     r.session, user_identity)
 
     else:
         return HttpResponseRedirect(get_reverse([denied, 'denied', 'django_saml2_auth:denied']))
