@@ -60,6 +60,6 @@ setup(
 
     install_requires=['pysaml2>=4.8.0',
                       'djangorestframework-jwt',
-                      'django-rest-auth', ],
+                      'PyJWT', ],
     include_package_data=True,
 )

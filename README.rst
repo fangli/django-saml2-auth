@@ -167,6 +167,7 @@ How to use?
             'ENTITY_ID': 'https://mysite.com/saml2_auth/acs/', # Populates the Issuer element in authn request
             'NAME_ID_FORMAT': FormatString, # Sets the Format property of authn NameIDPolicy element
             'USE_JWT': False, # Set this to True if you are running a Single Page Application (SPA) with Django Rest Framework (DRF), and are using JWT authentication to authorize client users
+            'JWT_SECRET': 'your.jwt.secret', # JWT secret to sign the message with
             'FRONTEND_URL': 'https://myfrontendclient.com', # Redirect URL for the client if you are using JWT auth with DRF. See explanation below
             'LOGIN_CASE_SENSITIVE': True, # whether of not to get the user in case_sentive mode
             'WANT_ASSERTIONS_SIGNED': True, # Require each assertion to be signed

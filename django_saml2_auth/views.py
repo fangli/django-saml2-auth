@@ -13,7 +13,7 @@ from django.template import TemplateDoesNotExist
 from django.utils.http import is_safe_url
 from django.views.decorators.csrf import csrf_exempt
 from pkg_resources import parse_version
-from rest_auth.utils import jwt_encode
+import jwt
 from saml2 import BINDING_HTTP_POST, BINDING_HTTP_REDIRECT, entity
 from saml2.client import Saml2Client
 from saml2.config import Config as Saml2Config
@@ -275,13 +275,15 @@ def acs(r):
 
     if settings.SAML2_AUTH.get('USE_JWT') is True:
         # We use JWT auth send token to frontend
-        jwt_token = jwt_encode(target_user)
+        jwt_secret = settings.SAML2_AUTH.get('JWT_SECRET')
+        jwt_token = jwt.encode(
+            target_user, jwt_secret, algorithm='HS256')
         query = '?token={}'.format(jwt_token)
 
         frontend_url = settings.SAML2_AUTH.get(
             'FRONTEND_URL') or next_url
 
-        return HttpResponseRedirect(frontend_url+query)
+        return HttpResponseRedirect(frontend_url + query)
 
     if is_new_user:
         try:
