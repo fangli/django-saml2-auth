@@ -145,8 +145,8 @@ def denied(r):
     return render(r, 'django_saml2_auth/denied.html')
 
 
-def _create_new_user(username, email, firstname, lastname):
-    user = User.objects.create_user(username, email)
+def _create_new_user(email, firstname, lastname):
+    user = User.objects.create_user(email)
     user.first_name = firstname
     user.last_name = lastname
     groups = [Group.objects.get(name=x) for x in settings.SAML2_AUTH.get(
@@ -215,7 +215,7 @@ def acs(r):
             'CREATE_USER', True)
         if new_user_should_be_created:
             target_user = _create_new_user(
-                user_name, user_email, user_first_name, user_last_name)
+                user_email, user_first_name, user_last_name)
 
             if settings.SAML2_AUTH.get('TRIGGER', {}).get('CREATE_USER', None):
                 run_hook(settings.SAML2_AUTH['TRIGGER']
