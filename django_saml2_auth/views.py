@@ -285,7 +285,7 @@ def acs(r):
                     timedelta(seconds=jwt_expiration)).timestamp()
         }
         jwt_token = jwt.encode(
-            payload, jwt_secret, algorithm='HS256')
+            payload, jwt_secret, algorithm='HS256').decode('ascii')
         query = '?token={}'.format(jwt_token)
 
         frontend_url = settings.SAML2_AUTH.get(
