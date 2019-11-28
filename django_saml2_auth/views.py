@@ -263,18 +263,7 @@ def acs(r):
         target_user = User.objects.get(
             {User.USERNAME_FIELD__iexact: user_name})
 
-    if target_user.is_active:
-        target_user.backend = 'django.contrib.auth.backends.ModelBackend'
-        login(r, target_user)
-
-        if settings.SAML2_AUTH.get('TRIGGER', {}).get('AFTER_LOGIN', None):
-            run_hook(settings.SAML2_AUTH['TRIGGER']['AFTER_LOGIN'],
-                     r.session, user_identity)
-
-    else:
-        return HttpResponseRedirect(get_reverse([denied, 'denied', 'django_saml2_auth:denied']))
-
-    if settings.SAML2_AUTH.get('USE_JWT') is True:
+    if settings.SAML2_AUTH.get('USE_JWT') is True and target_user.is_active:
         # We use JWT auth send token to frontend
         jwt_secret = settings.SAML2_AUTH.get('JWT_SECRET')
         jwt_expiration = settings.SAML2_AUTH.get(
@@ -292,6 +281,17 @@ def acs(r):
             'FRONTEND_URL') or next_url
 
         return HttpResponseRedirect(frontend_url + query)
+
+    if target_user.is_active:
+        target_user.backend = 'django.contrib.auth.backends.ModelBackend'
+        login(r, target_user)
+
+        if settings.SAML2_AUTH.get('TRIGGER', {}).get('AFTER_LOGIN', None):
+            run_hook(settings.SAML2_AUTH['TRIGGER']['AFTER_LOGIN'],
+                     r.session, user_identity)
+
+    else:
+        return HttpResponseRedirect(get_reverse([denied, 'denied', 'django_saml2_auth:denied']))
 
     if is_new_user:
         try:
