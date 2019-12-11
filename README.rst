@@ -6,15 +6,6 @@ Django SAML2 Authentication Made Easy
 :Maintainer: Mostafa Moradian
 :Version: Use 1.1.4 for Django <=1.9, 2.x.x for Django >= 1.9, Latest supported django version is 2.2
 
-.. image:: https://img.shields.io/pypi/pyversions/django-saml2-auth.svg
-    :target: https://pypi.python.org/pypi/django-saml2-auth
-
-.. image:: https://img.shields.io/pypi/v/django-saml2-auth.svg
-    :target: https://pypi.python.org/pypi/django-saml2-auth
-
-.. image:: https://img.shields.io/pypi/dm/django-saml2-auth.svg
-        :target: https://pypi.python.org/pypi/django-saml2-auth
-
 This project aims to provide a dead simple way to integrate SAML2
 Authentication into your Django powered app. Try it now, and get rid of the
 complicated configuration of SAML.
