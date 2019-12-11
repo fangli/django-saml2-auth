@@ -1,12 +1,14 @@
-This project is written and maintained by Fang Li and
+This project is written and maintained by Mostafa Moradian and
 various contributors:
 
 
 Django Saml2 Auth
 -----------------
 
-- Fang Li
-
+Original author:
+    - Fang Li
+Current maintainer:
+    - Mostafa Moradian
 
 
 Pysaml2
@@ -19,6 +21,7 @@ Pysaml2
 Contributors
 ------------
 
+- `Mostafa Moradian <https://github.com/mostafa>`_
 - `DSpeichert <https://github.com/DSpeichert>`_
 - `jacobh <https://github.com/jacobh>`_
 - `Gene Wood <http://github.com/gene1wood/>`_

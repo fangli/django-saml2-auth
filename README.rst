@@ -2,8 +2,9 @@
 Django SAML2 Authentication Made Easy
 =====================================
 
-:Author: Fang Li
-:Version: Use 1.1.4 for Django <=1.9, 2.x.x for Django >= 1.9, Latest supported django version is 2.1
+:Original Author: Fang Li
+:Maintainer: Mostafa Moradian
+:Version: Use 1.1.4 for Django <=1.9, 2.x.x for Django >= 1.9, Latest supported django version is 2.2
 
 .. image:: https://img.shields.io/pypi/pyversions/django-saml2-auth.svg
     :target: https://pypi.python.org/pypi/django-saml2-auth
@@ -18,7 +19,7 @@ This project aims to provide a dead simple way to integrate SAML2
 Authentication into your Django powered app. Try it now, and get rid of the
 complicated configuration of SAML.
 
-Any SAML2 based SSO(Single-Sign-On) identity provider with dynamic metadata
+Any SAML2 based SSO (Single Sign-On) identity provider with dynamic metadata
 configuration is supported by this Django plugin, for example Okta.
 
 
@@ -45,7 +46,7 @@ We accept your donations by clicking the awesome |star| instead of any physical 
 Dependencies
 ============
 
-This plugin is compatible with Django 1.6/1.7/1.8/1.9/1.10. The ``pysaml2`` Python
+This plugin is compatible with Django 1.6/1.7/1.8/1.9/1.10/2.1/2.2. The ``pysaml2`` Python
 module is required.
 
 
@@ -53,17 +54,17 @@ module is required.
 Install
 =======
 
-You can install this plugin via ``pip``:
+You can install this plugin via ``pip``. Make sure you update ``pip`` to be able to install from git:
 
 .. code-block:: bash
 
-    # pip install django_saml2_auth
+    # pip install git+https://github.com/loadimpact/django-saml2-auth.git@master#egg=django-saml2-auth
 
 or from source:
 
 .. code-block:: bash
 
-    # git clone https://github.com/fangli/django-saml2-auth
+    # git clone https://github.com/loadimpact/django-saml2-auth
     # cd django-saml2-auth
     # python setup.py install
 
@@ -299,6 +300,8 @@ How to Contribute
 
 Release Log
 ===========
+
+2.3.0: Merge of PRs plus bugfixes and (manual) testing
 
 2.2.1: Fixed is_safe_url parameters issue for django 2.1
 
