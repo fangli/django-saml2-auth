@@ -271,6 +271,7 @@ def acs(r):
     if settings.SAML2_AUTH.get('USE_JWT') is True and target_user.is_active:
         # We use JWT auth send token to frontend
         jwt_secret = settings.SAML2_AUTH.get('JWT_SECRET')
+        jwt_algorithm = settings.SAML2_AUTH.get('JWT_ALGORITHM')
         jwt_expiration = settings.SAML2_AUTH.get(
             'JWT_EXP', 60)  # default: 1 minute
         payload = {
@@ -279,7 +280,7 @@ def acs(r):
                     timedelta(seconds=jwt_expiration)).timestamp()
         }
         jwt_token = jwt.encode(
-            payload, jwt_secret, algorithm='HS256').decode('ascii')
+            payload, jwt_secret, algorithm=jwt_algorithm).decode('ascii')
         query = '?token={}'.format(jwt_token)
 
         frontend_url = settings.SAML2_AUTH.get(
