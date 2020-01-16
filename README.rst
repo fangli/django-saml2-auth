@@ -246,6 +246,8 @@ If your SAML2 identity provider uses user attribute names other than the
 defaults listed in the `settings.py` `ATTRIBUTES_MAP`, update them in
 `settings.py`.
 
+If using a custom User model, update or remove the Backend model specification in views.py
+
 
 For Okta Users
 ==============
