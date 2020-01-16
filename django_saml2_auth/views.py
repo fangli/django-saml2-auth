@@ -196,6 +196,7 @@ def acs(r):
     r.session.flush()
 
     if target_user.is_active:
+        # When using a custom User model, update or remove this backend model specification
         target_user.backend = 'django.contrib.auth.backends.ModelBackend'
         login(r, target_user)
     else:
