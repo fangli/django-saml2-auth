@@ -60,3 +60,9 @@ target/
 
 #Ipython Notebook
 .ipynb_checkpoints
+
+# venv
+venv/
+
+# pycharm
+.idea/
