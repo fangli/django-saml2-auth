@@ -21,6 +21,11 @@ complicated configuration of SAML.
 Any SAML2 based SSO(Single-Sign-On) identity provider with dynamic metadata
 configuration is supported by this Django plugin, for example Okta.
 
+This fork uses `django-rest-framework-simplejwt <https://github.com/davesque/django-rest-framework-simplejwt>`_
+instead of `django-rest-framework-jwt <https://github.com/jpadilla/django-rest-framework-jwt>`_ as the latter is not maintained anymore.
+
+Addtionally, this version also supports the passing of the refresh token and a redirection parameter.
+
 
 When you raise an issue or PR
 =============================
@@ -30,7 +35,6 @@ Please note this library is used in tons of production environment and plays a m
 So most non-security features or enhancements will be REJECTED. please fork your own version or just copy the code as you need. I want to make this module dead simple and reliable. That means when you have it properly configured, you are not likely to get into any troubles in the future.
 
 The supports to new versions of django are still welcome and I'll make best effort to make it latest django compatible.
-
 
 
 Donate
