@@ -155,8 +155,10 @@ def _create_new_user(username, email, firstname, lastname):
 @csrf_exempt
 def acs(r):
     saml_client = _get_saml_client(get_current_domain(r))
-    resp = r.POST.get('SAMLResponse', None)
-    next_url = r.session.get('login_next_url', _default_next_url())
+    resp = r.POST.get("SAMLResponse", None)
+    next_url = r.session.get("login_next_url", _default_next_url())
+    # If relayState param is passed, use that else consider the previous 'next_url'
+    next_url = r.POST.get("RelayState", next_url)
 
     if not resp:
         return HttpResponseRedirect(
@@ -279,7 +281,8 @@ def signin(r):
     r.session["login_next_url"] = next_url
 
     saml_client = _get_saml_client(get_current_domain(r))
-    _, info = saml_client.prepare_for_authenticate()
+    # _, info = saml_client.prepare_for_authenticate()
+    _, info = saml_client.prepare_for_authenticate(relay_state=next_url)
 
     redirect_url = None
 
