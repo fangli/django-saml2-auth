@@ -70,6 +70,13 @@ def get_reverse(objs):
 
 
 def _get_metadata():
+    if settings.SAML2_AUTH.get('TRIGGER', {}).get('GET_METADATA_AUTO_CONF_URLS', None):
+        metadata_urls = run_hook(
+            settings.SAML2_AUTH['TRIGGER']['GET_METADATA_AUTO_CONF_URLS'])
+        return {
+            'remote': metadata_urls
+        }
+
     if 'METADATA_LOCAL_FILE_PATH' in settings.SAML2_AUTH:
         return {
             'local': [settings.SAML2_AUTH['METADATA_LOCAL_FILE_PATH']]
@@ -180,6 +187,12 @@ def acs(r):
     authn_response = saml_client.parse_authn_request_response(
         resp, entity.BINDING_HTTP_POST)
     if authn_response is None:
+        return HttpResponseRedirect(get_reverse([denied, 'denied', 'django_saml2_auth:denied']))
+    if authn_response.name_id is None:
+        return HttpResponseRedirect(get_reverse([denied, 'denied', 'django_saml2_auth:denied']))
+
+    entity_id = authn_response.issuer()
+    if entity_id is None:
         return HttpResponseRedirect(get_reverse([denied, 'denied', 'django_saml2_auth:denied']))
 
     user_identity = authn_response.get_identity()

@@ -155,6 +155,7 @@ How to use?
                 'CREATE_USER': 'path.to.your.new.user.hook.method',
                 'BEFORE_LOGIN': 'path.to.your.login.hook.method',
                 'AFTER_LOGIN': 'path.to.your.after.login.hook.method',
+                'GET_METADATA_AUTO_CONF_URLS': 'path.to.your.after.metadata.conf.hook.method',
             },
             'ASSERTION_URL': 'https://mysite.com', # Custom URL to validate incoming SAML requests against
             'ENTITY_ID': 'https://mysite.com/saml2_auth/acs/', # Populates the Issuer element in authn request
@@ -176,6 +177,8 @@ How to use?
 
 Explanation
 -----------
+
+**GET_METADATA_AUTO_CONF_URLS** hook is function that returns list of metadata autoconf URLs.
 
 **METADATA_AUTO_CONF_URL** Auto SAML2 metadata configuration URL
 
