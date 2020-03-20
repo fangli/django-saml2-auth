@@ -21,14 +21,6 @@ from django.template import TemplateDoesNotExist
 from django.http import HttpResponseRedirect
 from django.utils.http import is_safe_url
 
-from book.models import Organization
-from integration.serializers import ReferralCreatorSerializer
-from refer.utils import PasswordlessAuthBackend
-
-from logging import getLogger
-
-logger = getLogger('django_saml2_auth.views')
-
 # Default User
 User = get_user_model()
 
@@ -125,7 +117,7 @@ def _get_saml_client(domain):
 @login_required
 def welcome(r):
     try:
-        return render(r, 'django_saml2_auth/tchWelcome.html', {'user': r.user})
+        return render(r, 'django_saml2_auth/welcome.html', {'user': r.user})
     except TemplateDoesNotExist:
         return HttpResponseRedirect(_default_next_url())
 
@@ -133,7 +125,6 @@ def denied(r):
     return render(r, 'django_saml2_auth/denied.html')
 
 def _create_new_user(username, email, firstname, lastname):
-    logger.debug('_create_new_user')
     # Create a new user object with the parameters passed
     user = User.objects.create_user(username, email)
     user.first_name = firstname
@@ -152,42 +143,8 @@ def _create_new_user(username, email, firstname, lastname):
     user.save()
     return user
 
-def _tch_setup_lead_creator(user_email):
-    logger.debug('_tch_setup_lead_creator')
-    # Get the user based on the credentials passed
-    user = User.objects.get(username=user_email)
-    # Assign the user to a new lead creator instance within the TCH organization
-    logger.debug('Making lead creator for TCH user %s' % user.id)
-    # Obtain the TCH organization instance
-    org = Organization.objects.get(name="Texas Children's Hospital - Pathology")
-    # Pass data to serializer
-    leadCreator = ReferralCreatorSerializer(data={"organization": org.id, "django_user": user.id})
-
-    # If the serializer is valid, save the leadCreator instance
-    if leadCreator.is_valid():
-        leadCreator.save()
-        logger.debug('Success')
-    else:
-        logger.debug('Failure')
-        
-    return user
-
-def _authenticate_without_password(user_email):
-    logger.debug('_authenticate_without_password')
-    # Obtain the user instance by referencing the email key
-    user = User.objects.get(email=user_email)
-    # If the user DNE, return None
-    if (user == None):
-        logger.debug('No user exists')
-    else:
-        user = PasswordlessAuthBackend.authenticate(username=user.username)
-        logger.info('user %s authenticated' % user.id)
-
-    return user
-
 @csrf_exempt
 def acs(r):
-    logger.debug('acs')
     saml_client = _get_saml_client(get_current_domain(r))
     resp = r.POST.get('SAMLResponse', None)
     next_url = r.session.get('login_next_url', settings.SAML2_AUTH.get('DEFAULT_NEXT_URL', get_reverse('start_page')))
@@ -212,7 +169,6 @@ def acs(r):
     target_user = None
     is_new_user = False
 
-    logger.debug('All user credentials received')
     # Try to query the user by the username
     try:
         target_user = User.objects.get(username=user_name)
@@ -220,23 +176,23 @@ def acs(r):
     except User.DoesNotExist:
         # Create a new user
         target_user = _create_new_user(user_name, user_email, user_first_name, user_last_name)
+        if settings.SAML2_AUTH.get('TRIGGER', {}).get('CREATE_USER', None):
+            target_user = import_string(settings.SAML2_AUTH['TRIGGER']['CREATE_USER'](user_identity)
 
     r.session.flush()
-
-    # For TCH, assign to a lead creator instance
-    target_user = _tch_setup_lead_creator(user_email)
 
     # If the user is active, we want to login
     if target_user.is_active:
         # Authenticate the user
-        target_user = _authenticate_without_password(user_email)
+        if settings.SAML2_AUTH.get('TRIGGER', {}).get('CREATE_USER', None):
+            target_user = import_string(settings.SAML2_AUTH['TRIGGER']['BEFORE_LOGIN'](user_identity)
         login(r, target_user)
     else:
         return HttpResponseRedirect(get_reverse([denied, 'denied', 'django_saml2_auth:denied']))
 
     if is_new_user:
         try:
-            return render(r, 'django_saml2_auth/tchWelcome.html', {'user': r.user})
+            return render(r, 'django_saml2_auth/welcome.html', {'user': r.user})
         except TemplateDoesNotExist:
             return HttpResponseRedirect(next_url)
     else:
