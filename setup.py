@@ -21,10 +21,10 @@ setup(
     description='Django SAML2 Authentication Made Easy. Easily integrate with SAML2 SSO identity providers like Okta',
     long_description=long_description,
 
-    url='https://github.com/fangli/django-saml2-auth',
+    url='https://github.com/dgonzo27/django-saml2-auth',
 
     author='Fang Li',
-    author_email='surivlee+djsaml2auth@gmail.com',
+    author_email='dylan.gonzales@metisgenetics.com',
 
     license='Apache 2.0',
 
