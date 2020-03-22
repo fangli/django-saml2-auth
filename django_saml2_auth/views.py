@@ -177,7 +177,7 @@ def acs(r):
         # Create a new user
         target_user = _create_new_user(user_name, user_email, user_first_name, user_last_name)
         if settings.SAML2_AUTH.get('TRIGGER', {}).get('CREATE_USER', None):
-            target_user = import_string(settings.SAML2_AUTH['TRIGGER']['CREATE_USER'](user_identity)
+            import_string(settings.SAML2_AUTH['TRIGGER']['CREATE_USER'](user_identity)
 
     r.session.flush()
 
@@ -185,7 +185,7 @@ def acs(r):
     if target_user.is_active:
         # Authenticate the user
         if settings.SAML2_AUTH.get('TRIGGER', {}).get('CREATE_USER', None):
-            target_user = import_string(settings.SAML2_AUTH['TRIGGER']['BEFORE_LOGIN'](user_identity)
+            import_string(settings.SAML2_AUTH['TRIGGER']['BEFORE_LOGIN'](user_identity)
         login(r, target_user)
     else:
         return HttpResponseRedirect(get_reverse([denied, 'denied', 'django_saml2_auth:denied']))
