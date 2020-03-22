@@ -20,6 +20,9 @@ from django.views.decorators.csrf import csrf_exempt
 from django.template import TemplateDoesNotExist
 from django.http import HttpResponseRedirect
 from django.utils.http import is_safe_url
+from logging import getLogger
+
+logger = getLogger('django-saml2-auth')
 
 # Default User
 User = get_user_model()
@@ -125,6 +128,7 @@ def denied(r):
     return render(r, 'django_saml2_auth/denied.html')
 
 def _create_new_user(username, email, firstname, lastname):
+    logger.debug('_create_new_user')
     # Create a new user object with the parameters passed
     user = User.objects.create_user(username, email)
     user.first_name = firstname
@@ -141,10 +145,12 @@ def _create_new_user(username, email, firstname, lastname):
 
     # Save changes to the new user instance
     user.save()
+    logger.debug('new user success')
     return user
 
 @csrf_exempt
 def acs(r):
+    logger.debug('acs')
     saml_client = _get_saml_client(get_current_domain(r))
     resp = r.POST.get('SAMLResponse', None)
     next_url = r.session.get('login_next_url', settings.SAML2_AUTH.get('DEFAULT_NEXT_URL', get_reverse('start_page')))
@@ -183,6 +189,7 @@ def acs(r):
 
     # If the user is active, we want to login
     if target_user.is_active:
+        logger.debug('trying to authenticate')
         # Authenticate the user
         if settings.SAML2_AUTH.get('TRIGGER', {}).get('CREATE_USER', None):
             import_string(settings.SAML2_AUTH['TRIGGER']['BEFORE_LOGIN'](user_identity)
