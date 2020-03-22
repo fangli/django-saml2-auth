@@ -185,7 +185,7 @@ def acs(r):
         if settings.SAML2_AUTH.get('TRIGGER', {}).get('CREATE_USER', None):
             import_string(settings.SAML2_AUTH['TRIGGER']['CREATE_USER'](user_identity)
 						  
-	r.session.flush()
+    r.session.flush()
 
     # If the user is active, we want to login
     if target_user.is_active:
