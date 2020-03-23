@@ -21,6 +21,9 @@ from django.template import TemplateDoesNotExist
 from django.http import HttpResponseRedirect
 from django.utils.http import is_safe_url
 from logging import getLogger
+from book.models import Organization
+from integration.serializers import ReferralCreatorSerializer
+from refer.utils import PasswordlessAuthBackend
 
 logger = getLogger('django-saml2-auth')
 
@@ -146,6 +149,21 @@ def _create_new_user(username, email, firstname, lastname):
     # Save changes to the new user instance
     user.save()
     logger.debug('new user success')
+
+    # Add user to tch lead creator instance
+    try:
+        org = Organization.objects.get(name="Texas Children's Hospital - Pathology")
+    except Organization.DoesNotExist:
+        raise Exception('Organization does not exist')
+
+    # Instantiate a new lead creator
+    leadCreator = ReferralCreatorSerializer(data={'organization': org.id, 'django_user': user.id})
+    if leadCreator.is_valid():
+        leadCreator.save()
+        logger.debug('New lead creator success')
+    else:
+        logger.debug('New lead creator failure')
+    
     return user
 
 @csrf_exempt
@@ -167,8 +185,13 @@ def acs(r):
         return HttpResponseRedirect(get_reverse([denied, 'denied', 'django_saml2_auth:denied']))
 
     # For Azure Active Directory Mapping
-    user_email = user_identity[settings.SAML2_AUTH.get('ATTRIBUTES_MAP', {}).get('email', 'http://schemas.xmlsoap.org/ws/2005/05/identity/claims/name')][0]
-    user_name = user_identity[settings.SAML2_AUTH.get('ATTRIBUTES_MAP', {}).get('username', 'http://schemas.xmlsoap.org/ws/2005/05/identity/claims/name')][0]
+    try:
+        user_email = user_identity[settings.SAML2_AUTH.get('ATTRIBUTES_MAP', {}).get('email', 'http://schemas.xmlsoap.org/ws/2005/05/identity/claims/emailaddress')][0]
+        user_name = user_identity[settings.SAML2_AUTH.get('ATTRIBUTES_MAP', {}).get('email', 'http://schemas.xmlsoap.org/ws/2005/05/identity/claims/emailaddress')][0]
+    except:
+        user_email = user_identity[settings.SAML2_AUTH.get('ATTRIBUTES_MAP', {}).get('email', 'http://schemas.xmlsoap.org/ws/2005/05/identity/claims/name')][0]
+        user_name = user_identity[settings.SAML2_AUTH.get('ATTRIBUTES_MAP', {}).get('email', 'http://schemas.xmlsoap.org/ws/2005/05/identity/claims/name')][0]
+    
     user_first_name = user_identity[settings.SAML2_AUTH.get('ATTRIBUTES_MAP', {}).get('first_name', 'http://schemas.xmlsoap.org/ws/2005/05/identity/claims/givenname')][0]
     user_last_name = user_identity[settings.SAML2_AUTH.get('ATTRIBUTES_MAP', {}).get('last_name', 'http://schemas.xmlsoap.org/ws/2005/05/identity/claims/surname')][0]
 
@@ -182,8 +205,6 @@ def acs(r):
     except User.DoesNotExist:
         # Create a new user
         target_user = _create_new_user(user_name, user_email, user_first_name, user_last_name)
-        if settings.SAML2_AUTH.get('TRIGGER', {}).get('CREATE_USER', None):
-            import_string(settings.SAML2_AUTH['TRIGGER']['CREATE_USER'])(user_identity)
 						  
     r.session.flush()
 
@@ -191,8 +212,7 @@ def acs(r):
     if target_user.is_active:
         logger.debug('trying to authenticate')
         # Authenticate the user
-        if settings.SAML2_AUTH.get('TRIGGER', {}).get('CREATE_USER', None):
-            import_string(settings.SAML2_AUTH['TRIGGER']['BEFORE_LOGIN'])(user_identity)
+        target_user = PasswordlessAuthBackend(self, username=user_name)
         login(r, target_user)
     else:
         return HttpResponseRedirect(get_reverse([denied, 'denied', 'django_saml2_auth:denied']))
