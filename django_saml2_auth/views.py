@@ -46,7 +46,7 @@ def _default_next_url():
     if 'DEFAULT_NEXT_URL' in settings.SAML2_AUTH:
         return settings.SAML2_AUTH['DEFAULT_NEXT_URL']
     else:
-        return get_reverse('start_page')
+        return '/rfr/dashboard'
 
 def get_current_domain(r):
     if 'ASSERTION_URL' in settings.SAML2_AUTH:
@@ -171,7 +171,7 @@ def acs(r):
     logger.debug('acs')
     saml_client = _get_saml_client(get_current_domain(r))
     resp = r.POST.get('SAMLResponse', None)
-    next_url = r.session.get('login_next_url', settings.SAML2_AUTH.get('DEFAULT_NEXT_URL', get_reverse('start_page')))
+    next_url = r.session.get('login_next_url', settings.SAML2_AUTH.get('DEFAULT_NEXT_URL', '/rfr/dashboard'))
 
     if not resp:
         return HttpResponseRedirect(get_reverse([denied, 'denied', 'django_saml2_auth:denied']))
@@ -214,6 +214,7 @@ def acs(r):
         # Authenticate the user
         target_user = PasswordlessAuthBackend(self, username=user_name)
         login(r, target_user)
+        return HttpResponseRedirect(next_url)
     else:
         return HttpResponseRedirect(get_reverse([denied, 'denied', 'django_saml2_auth:denied']))
 
