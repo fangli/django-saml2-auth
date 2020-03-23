@@ -214,7 +214,7 @@ def acs(r):
     if target_user.is_active:
         logger.debug('trying to authenticate')
         # Authenticate the user
-        target_user = PasswordlessAuthBackend(self, username=user_name)
+        target_user = PasswordlessAuthBackend(username=user_name)
         login(r, target_user)
         return redirect(reverse('lead_creator_dashboard'))
     else:
