@@ -147,6 +147,7 @@ def _create_new_user(username, email, firstname, lastname):
     user.is_active = settings.SAML2_AUTH.get('NEW_USER_PROFILE', {}).get('ACTIVE_STATUS', True) # Default to true if not found
     user.is_staff = settings.SAML2_AUTH.get('NEW_USER_PROFILE', {}).get('STAFF_STATUS', False) # Default to false if not found
     user.is_superuser = settings.SAML2_AUTH.get('NEW_USER_PROFILE', {}).get('SUPERUSER_STATUS', False) # Default to false if not found
+    user.set_unusable_password()
 
     # Save changes to the new user instance
     user.save()
@@ -214,7 +215,6 @@ def acs(r):
     if target_user.is_active:
         logger.debug('trying to authenticate')
         # Authenticate the user
-        target_user.set_unusable_password()
         target_user = PasswordlessAuthBackend(username=user_name)
         login(r, target_user)
         return redirect(reverse('lead_creator_dashboard'))
