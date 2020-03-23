@@ -14,7 +14,7 @@ from pkg_resources import parse_version
 from django.conf import settings
 from django.contrib.auth.models import Group
 from django.contrib.auth.decorators import login_required
-from django.contrib.auth import login, logout, get_user_model, set_unusable_password
+from django.contrib.auth import login, logout, get_user_model
 from django.shortcuts import render
 from django.views.decorators.csrf import csrf_exempt
 from django.template import TemplateDoesNotExist
@@ -214,8 +214,8 @@ def acs(r):
     if target_user.is_active:
         logger.debug('trying to authenticate')
         # Authenticate the user
+        target_user.set_unusable_password()
         target_user = PasswordlessAuthBackend(username=user_name)
-        target_user = set_unusable_password()
         login(r, target_user)
         return redirect(reverse('lead_creator_dashboard'))
     else:
