@@ -24,6 +24,8 @@ from logging import getLogger
 from book.models import Organization
 from integration.serializers import ReferralCreatorSerializer
 from refer.utils import PasswordlessAuthBackend
+from django.shortcuts import redirect
+from django.urls import reverse
 
 logger = getLogger('django-saml2-auth')
 
@@ -185,12 +187,12 @@ def acs(r):
         return HttpResponseRedirect(get_reverse([denied, 'denied', 'django_saml2_auth:denied']))
 
     # For Azure Active Directory Mapping
-    try:
-        user_email = user_identity[settings.SAML2_AUTH.get('ATTRIBUTES_MAP', {}).get('email', 'http://schemas.xmlsoap.org/ws/2005/05/identity/claims/emailaddress')][0]
-        user_name = user_identity[settings.SAML2_AUTH.get('ATTRIBUTES_MAP', {}).get('email', 'http://schemas.xmlsoap.org/ws/2005/05/identity/claims/emailaddress')][0]
-    except:
-        user_email = user_identity[settings.SAML2_AUTH.get('ATTRIBUTES_MAP', {}).get('email', 'http://schemas.xmlsoap.org/ws/2005/05/identity/claims/name')][0]
-        user_name = user_identity[settings.SAML2_AUTH.get('ATTRIBUTES_MAP', {}).get('email', 'http://schemas.xmlsoap.org/ws/2005/05/identity/claims/name')][0]
+    # try:
+    #     user_email = user_identity[settings.SAML2_AUTH.get('ATTRIBUTES_MAP', {}).get('email', 'http://schemas.xmlsoap.org/ws/2005/05/identity/claims/emailaddress')][0]
+    #     user_name = user_identity[settings.SAML2_AUTH.get('ATTRIBUTES_MAP', {}).get('email', 'http://schemas.xmlsoap.org/ws/2005/05/identity/claims/emailaddress')][0]
+    # except:
+    user_email = user_identity[settings.SAML2_AUTH.get('ATTRIBUTES_MAP', {}).get('email', 'http://schemas.xmlsoap.org/ws/2005/05/identity/claims/name')][0]
+    user_name = user_identity[settings.SAML2_AUTH.get('ATTRIBUTES_MAP', {}).get('email', 'http://schemas.xmlsoap.org/ws/2005/05/identity/claims/name')][0]
     
     user_first_name = user_identity[settings.SAML2_AUTH.get('ATTRIBUTES_MAP', {}).get('first_name', 'http://schemas.xmlsoap.org/ws/2005/05/identity/claims/givenname')][0]
     user_last_name = user_identity[settings.SAML2_AUTH.get('ATTRIBUTES_MAP', {}).get('last_name', 'http://schemas.xmlsoap.org/ws/2005/05/identity/claims/surname')][0]
@@ -214,7 +216,7 @@ def acs(r):
         # Authenticate the user
         target_user = PasswordlessAuthBackend(self, username=user_name)
         login(r, target_user)
-        return HttpResponseRedirect(next_url)
+        return redirect(reverse('lead_creator_dashboard'))
     else:
         return HttpResponseRedirect(get_reverse([denied, 'denied', 'django_saml2_auth:denied']))
 
