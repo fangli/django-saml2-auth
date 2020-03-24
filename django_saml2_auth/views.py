@@ -208,14 +208,13 @@ def acs(r):
     except User.DoesNotExist:
         # Create a new user
         target_user = _create_new_user(user_name, user_email, user_first_name, user_last_name)
-						  
+			  
     # If the user is active, we want to login
     if target_user.is_active:
         logger.debug('trying to authenticate')
         # Authenticate the user
-        target_user = PasswordlessAuthBackend(username=user_name)
+        target_user.backend = 'django.contrib.auth.backends.ModelBackend'
         login(r, target_user)
-        r.session.flush()
         return redirect(reverse('lead_creator_dashboard'))
     else:
         return HttpResponseRedirect(get_reverse([denied, 'denied', 'django_saml2_auth:denied']))
@@ -227,6 +226,8 @@ def acs(r):
             return HttpResponseRedirect(next_url)
     else:
         return HttpResponseRedirect(next_url)
+
+    #r.session.flush()
 
 def signin(r):
     try:
