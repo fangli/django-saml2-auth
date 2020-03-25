@@ -225,10 +225,12 @@ def acs(r):
 
         if login_case_sensitive:
             target_user = User.objects.get(
-                **{User.USERNAME_FIELD: user_name})
+                **{User.USERNAME_FIELD:
+                    user_email if User.USERNAME_FIELD == 'email' else user_name})
         else:
             target_user = User.objects.get(
-                {User.USERNAME_FIELD__iexact: user_name})
+                **{User.USERNAME_FIELD__iexact:
+                    user_email if User.USERNAME_FIELD == 'email' else user_name})
     except User.DoesNotExist:
         new_user_should_be_created = settings.SAML2_AUTH.get(
             'CREATE_USER', True)
@@ -276,10 +278,12 @@ def acs(r):
 
     if login_case_sensitive:
         target_user = User.objects.get(
-            **{User.USERNAME_FIELD: user_name})
+            **{User.USERNAME_FIELD:
+                user_email if User.USERNAME_FIELD == 'email' else user_name})
     else:
         target_user = User.objects.get(
-            {User.USERNAME_FIELD__iexact: user_name})
+            **{User.USERNAME_FIELD__iexact:
+                user_email if User.USERNAME_FIELD == 'email' else user_name})
 
     if settings.SAML2_AUTH.get('USE_JWT') is True and target_user.is_active:
         # We use JWT auth send token to frontend
