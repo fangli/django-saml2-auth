@@ -41,6 +41,13 @@ else:
 User = get_user_model()
 
 
+def _safe_get_index(lst, index):
+    try:
+        return lst[index]
+    except IndexError:
+        return None
+
+
 def _default_next_url():
     if 'DEFAULT_NEXT_URL' in settings.SAML2_AUTH:
         return settings.SAML2_AUTH['DEFAULT_NEXT_URL']
@@ -199,16 +206,16 @@ def acs(r):
     if user_identity is None:
         return HttpResponseRedirect(get_reverse([denied, 'denied', 'django_saml2_auth:denied']))
 
-    user_email = user_identity[settings.SAML2_AUTH.get(
-        'ATTRIBUTES_MAP', {}).get('email', 'Email')][0]
-    user_name = user_identity[settings.SAML2_AUTH.get(
-        'ATTRIBUTES_MAP', {}).get('username', 'UserName')][0]
-    user_first_name = user_identity[settings.SAML2_AUTH.get(
-        'ATTRIBUTES_MAP', {}).get('first_name', 'FirstName')][0]
-    user_last_name = user_identity[settings.SAML2_AUTH.get(
-        'ATTRIBUTES_MAP', {}).get('last_name', 'LastName')][0]
-    token = user_identity[settings.SAML2_AUTH.get(
-        'ATTRIBUTES_MAP', {}).get('token', 'Token')][0]
+    user_email = _safe_get_index(user_identity.get(settings.SAML2_AUTH.get(
+        'ATTRIBUTES_MAP', {}).get('email', 'Email')), 0)
+    user_name = _safe_get_index(user_identity.get(settings.SAML2_AUTH.get(
+        'ATTRIBUTES_MAP', {}).get('username', 'UserName')), 0)
+    user_first_name = _safe_get_index(user_identity(settings.SAML2_AUTH.get(
+        'ATTRIBUTES_MAP', {}).get('first_name', 'FirstName')), 0)
+    user_last_name = _safe_get_index(user_identity(settings.SAML2_AUTH.get(
+        'ATTRIBUTES_MAP', {}).get('last_name', 'LastName')), 0)
+    token = _safe_get_index(user_identity(settings.SAML2_AUTH.get(
+        'ATTRIBUTES_MAP', {}).get('token', 'Token')), 0)
 
     if not token:
         return HttpResponseRedirect(get_reverse([denied, 'denied', 'django_saml2_auth:denied']))
