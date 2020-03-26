@@ -44,7 +44,7 @@ User = get_user_model()
 def _safe_get_index(lst, index):
     try:
         return lst[index]
-    except IndexError:
+    except Exception:
         return None
 
 
