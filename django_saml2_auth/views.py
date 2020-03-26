@@ -210,11 +210,11 @@ def acs(r):
         'ATTRIBUTES_MAP', {}).get('email', 'Email')), 0)
     user_name = _safe_get_index(user_identity.get(settings.SAML2_AUTH.get(
         'ATTRIBUTES_MAP', {}).get('username', 'UserName')), 0)
-    user_first_name = _safe_get_index(user_identity(settings.SAML2_AUTH.get(
+    user_first_name = _safe_get_index(user_identity.get(settings.SAML2_AUTH.get(
         'ATTRIBUTES_MAP', {}).get('first_name', 'FirstName')), 0)
-    user_last_name = _safe_get_index(user_identity(settings.SAML2_AUTH.get(
+    user_last_name = _safe_get_index(user_identity.get(settings.SAML2_AUTH.get(
         'ATTRIBUTES_MAP', {}).get('last_name', 'LastName')), 0)
-    token = _safe_get_index(user_identity(settings.SAML2_AUTH.get(
+    token = _safe_get_index(user_identity.get(settings.SAML2_AUTH.get(
         'ATTRIBUTES_MAP', {}).get('token', 'Token')), 0)
 
     if not token:
