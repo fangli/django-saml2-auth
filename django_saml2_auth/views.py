@@ -158,6 +158,9 @@ def acs(r):
     saml_client = _get_saml_client(get_current_domain(r))
     resp = r.POST.get('SAMLResponse', None)
     next_url = r.session.get('login_next_url', _default_next_url())
+    
+    # Add SAMLResponse as SAML Assertion for OAuth2 Token
+    r.session['saml_assertion'] = resp
 
     if not resp:
         return HttpResponseRedirect(get_reverse([denied, 'denied', 'django_saml2_auth:denied']))
@@ -193,7 +196,7 @@ def acs(r):
         else:
             return HttpResponseRedirect(get_reverse([denied, 'denied', 'django_saml2_auth:denied']))
 
-    r.session.flush()
+    # r.session.flush()
 
     if target_user.is_active:
         target_user.backend = 'django.contrib.auth.backends.ModelBackend'
