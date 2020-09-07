@@ -236,7 +236,7 @@ def acs(r):
                     user_email if User.USERNAME_FIELD == 'email' else user_name})
         else:
             target_user = User.objects.get(
-                **{User.USERNAME_FIELD__iexact:
+                **{f"{User.USERNAME_FIELD}__iexact":
                     user_email if User.USERNAME_FIELD == 'email' else user_name})
     except User.DoesNotExist:
         new_user_should_be_created = settings.SAML2_AUTH.get(
@@ -289,7 +289,7 @@ def acs(r):
                 user_email if User.USERNAME_FIELD == 'email' else user_name})
     else:
         target_user = User.objects.get(
-            **{User.USERNAME_FIELD__iexact:
+            **{f"{User.USERNAME_FIELD}__iexact":
                 user_email if User.USERNAME_FIELD == 'email' else user_name})
 
     if settings.SAML2_AUTH.get('USE_JWT') is True and target_user.is_active:
