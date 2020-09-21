@@ -221,8 +221,8 @@ def acs(r):
     if settings.SAML2_AUTH.get('USE_SIMPLE_JWT') is True:
         refresh = RefreshToken.for_user(target_user)
 
-        refresh['user_username'] = target_user.username
-        refresh['user_email'] = target_user.email
+        refresh['username'] = target_user.username
+        refresh['email'] = target_user.email
 
         # We use JWT auth send token to frontend
         access_token = str(refresh.access_token)
