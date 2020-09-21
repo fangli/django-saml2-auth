@@ -23,6 +23,7 @@ from django.http import HttpResponseRedirect
 from django.utils.http import is_safe_url
 
 from rest_auth.utils import jwt_encode
+from rest_framework_simplejwt.tokens import RefreshToken
 
 
 # default User or custom User. Now both will work.
@@ -205,6 +206,19 @@ def acs(r):
         # We use JWT auth send token to frontend
         jwt_token = jwt_encode(target_user)
         query = '?uid={}&token={}'.format(target_user.id, jwt_token)
+
+        frontend_url = settings.SAML2_AUTH.get(
+            'FRONTEND_URL', next_url)
+
+        return HttpResponseRedirect(frontend_url+query)
+
+    if settings.SAML2_AUTH.get('USE_SIMPLE_JWT') is True:
+        refresh = RefreshToken.for_user(target_user)
+
+        # We use JWT auth send token to frontend
+        access_token = str(refresh.access_token)
+        refresh_token = str(refresh)
+        query = '?access={}&refresh={}'.format(access_token, refresh_token)
 
         frontend_url = settings.SAML2_AUTH.get(
             'FRONTEND_URL', next_url)
