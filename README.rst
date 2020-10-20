@@ -161,6 +161,7 @@ How to use?
             'ASSERTION_URL': 'https://mysite.com', # Custom URL to validate incoming SAML requests against
             'ENTITY_ID': 'https://mysite.com/saml2_auth/acs/', # Populates the Issuer element in authn request
             'NAME_ID_FORMAT': FormatString, # Sets the Format property of authn NameIDPolicy element
+            'ACCEPTED_TIME_DIFF': 0 # sets the  accepted_time_diff
             'USE_JWT': False, # Set this to True if you are running a Single Page Application (SPA) with Django Rest Framework (DRF), and are using JWT authentication to authorize client users
             'FRONTEND_URL': 'https://myfrontendclient.com', # Redirect URL for the client if you are using JWT auth with DRF. See explanation below
         }
@@ -206,6 +207,8 @@ behind a reverse proxy.
 
 **NAME_ID_FORMAT** Set to the string 'None', to exclude sending the 'Format' property of the 'NameIDPolicy' element in authn requests.
 Default value if not specified is 'urn:oasis:names:tc:SAML:2.0:nameid-format:transient'.
+
+**ACCEPTED_TIME_DIFF** Sets the accepted time diff in seconds `PySaml2 Accepted Time Diff <https://pysaml2.readthedocs.io/en/latest/howto/config.html#accepted-time-diff>`_
 
 **USE_JWT** Set this to the boolean True if you are using Django Rest Framework with JWT authentication
 
