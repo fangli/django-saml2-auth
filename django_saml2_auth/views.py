@@ -19,7 +19,7 @@ from django.contrib.auth import login, logout, get_user_model
 from django.shortcuts import render
 from django.views.decorators.csrf import csrf_exempt
 from django.template import TemplateDoesNotExist
-from django.http import HttpResponseRedirect
+from django.http import HttpResponse, HttpResponseRedirect
 from django.utils.http import is_safe_url
 
 from rest_auth.utils import jwt_encode
@@ -255,16 +255,21 @@ def signin(r):
     r.session['login_next_url'] = next_url
 
     saml_client = _get_saml_client(get_current_domain(r))
-    _, info = saml_client.prepare_for_authenticate()
+    _, info = saml_client.prepare_for_authenticate(binding=BINDING_HTTP_POST)
 
-    redirect_url = None
+    if info["method"] == "GET":
+        redirect_url = None
 
-    for key, value in info['headers']:
-        if key == 'Location':
-            redirect_url = value
-            break
+        for key, value in info['headers']:
+            if key == 'Location':
+                redirect_url = value
+                break
 
-    return HttpResponseRedirect(redirect_url)
+        return HttpResponseRedirect(redirect_url)
+
+    elif info["method"] == "POST":
+        response_content = info["data"]
+        return HttpResponse(response_content)
 
 
 def signout(r):
