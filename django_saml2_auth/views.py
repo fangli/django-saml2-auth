@@ -217,6 +217,9 @@ def acs(r):
         frontend_url = settings.SAML2_AUTH.get(
             'FRONTEND_URL', next_url)
 
+        if next_url and next_url != _default_next_url():
+            return HttpResponseRedirect(next_url+query)
+
         return HttpResponseRedirect(frontend_url+query)
 
     if is_new_user:
