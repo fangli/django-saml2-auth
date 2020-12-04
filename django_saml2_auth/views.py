@@ -163,6 +163,13 @@ def _create_new_user(username, email, firstname, lastname):
 
 @csrf_exempt
 def acs(r):
+    try:
+        import urlparse as _urlparse
+        from urllib import unquote
+    except:
+        import urllib.parse as _urlparse
+        from urllib.parse import unquote
+
     saml_client = _get_saml_client(get_current_domain(r))
     resp = r.POST.get('SAMLResponse', None)
     next_url = r.session.get('login_next_url', _default_next_url())
@@ -212,15 +219,21 @@ def acs(r):
     if settings.SAML2_AUTH.get('USE_JWT') is True:
         # We use JWT auth send token to frontend
         jwt_token = jwt_encode(target_user)
-        query = '?uid={}&token={}'.format(target_user.id, jwt_token)
+        params = {"uid": target_user.id, "token": jwt_token}
 
         frontend_url = settings.SAML2_AUTH.get(
             'FRONTEND_URL', next_url)
 
         if next_url and next_url != _default_next_url():
-            return HttpResponseRedirect(next_url+query)
+            frontend_url = next_url
 
-        return HttpResponseRedirect(frontend_url+query)
+        url_parts = list(_urlparse.urlparse(frontend_url, allow_fragments=False))
+        query = dict(_urlparse.parse_qsl(url_parts[4]))
+        query.update(params)
+
+        url_parts[4] = _urlparse.urlencode(query)
+
+        return HttpResponseRedirect(_urlparse.urlunparse(url_parts))
 
     if is_new_user:
         try:
