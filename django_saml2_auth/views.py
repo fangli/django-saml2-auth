@@ -227,6 +227,7 @@ def acs(r):
         if next_url and next_url != _default_next_url():
             frontend_url = next_url
 
+        # Reconstruct URL with added parameters.
         url_parts = list(_urlparse.urlparse(frontend_url, allow_fragments=False))
         query = dict(_urlparse.parse_qsl(url_parts[4]))
         query.update(params)
