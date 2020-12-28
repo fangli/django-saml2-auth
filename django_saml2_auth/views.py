@@ -223,21 +223,16 @@ def acs(r):
     target_user = None
     is_new_user = False
     login_case_sensitive = True
+    user_id = user_email if User.USERNAME_FIELD == 'email' else user_name
+
+    # check whether the getting of the user object has to be case_sensitive or not
+    # by default LOGIN_CASE_SENSITIVE = True
+    login_case_sensitive = settings.SAML2_AUTH.get(
+        'LOGIN_CASE_SENSITIVE', True)
+    id_field = User.USERNAME_FIELD if login_case_sensitive else f"{User.USERNAME_FIELD}__iexact"
 
     try:
-        # check whether the getting of the user object has to be case_sensitive or not
-        # by default LOGIN_CASE_SENSITIVE = True
-        login_case_sensitive = settings.SAML2_AUTH.get(
-            'LOGIN_CASE_SENSITIVE', True)
-
-        if login_case_sensitive:
-            target_user = User.objects.get(
-                **{User.USERNAME_FIELD:
-                    user_email if User.USERNAME_FIELD == 'email' else user_name})
-        else:
-            target_user = User.objects.get(
-                **{f"{User.USERNAME_FIELD}__iexact":
-                    user_email if User.USERNAME_FIELD == 'email' else user_name})
+        target_user = User.objects.get(**{id_field: user_id})
     except User.DoesNotExist:
         new_user_should_be_created = settings.SAML2_AUTH.get(
             'CREATE_USER', True)
@@ -283,14 +278,8 @@ def acs(r):
 
     r.session.flush()
 
-    if login_case_sensitive:
-        target_user = User.objects.get(
-            **{User.USERNAME_FIELD:
-                user_email if User.USERNAME_FIELD == 'email' else user_name})
-    else:
-        target_user = User.objects.get(
-            **{f"{User.USERNAME_FIELD}__iexact":
-                user_email if User.USERNAME_FIELD == 'email' else user_name})
+    # Retrieve user object from database again
+    target_user = User.objects.get(**{id_field: user_id})
 
     if settings.SAML2_AUTH.get('USE_JWT') is True and target_user.is_active:
         # We use JWT auth send token to frontend
