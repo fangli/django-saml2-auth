@@ -58,10 +58,10 @@ def _default_next_url():
 def get_current_domain(r):
     if 'ASSERTION_URL' in settings.SAML2_AUTH:
         return settings.SAML2_AUTH['ASSERTION_URL']
-    return '{scheme}://{host}'.format(
-        scheme='https' if r.is_secure() else 'http',
-        host=r.get_host(),
-    )
+
+    scheme = 'https' if r.is_secure() else 'http'
+    host = r.get_host()
+    return f'{scheme}://{host}'
 
 
 def get_reverse(objs):
@@ -305,7 +305,7 @@ def acs(r):
         }
         jwt_token = jwt.encode(
             payload, jwt_secret, algorithm=jwt_algorithm).decode('ascii')
-        query = '?token={}'.format(jwt_token)
+        query = f'?token={jwt_token}'
 
         frontend_url = settings.SAML2_AUTH.get(
             'FRONTEND_URL') or next_url
