@@ -1,7 +1,9 @@
 #!/usr/bin/env python
 # -*- coding:utf-8 -*-
 
+import urllib.parse as urlparse
 from datetime import datetime, timedelta
+from urllib.parse import unquote
 
 import jwt
 from django import get_version
@@ -19,9 +21,6 @@ from pkg_resources import parse_version
 from .utils import (create_new_user, decode_saml_response, default_next_url,
                     get_current_domain, get_reverse, get_saml_client, run_hook,
                     safe_get_index)
-
-import urllib.parse as urlparse
-from urllib.parse import unquote
 
 
 @login_required

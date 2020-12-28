@@ -1,25 +1,17 @@
-from typing import Optional, Callable
+from typing import Callable, Optional
 
 from django import get_version
 from django.conf import settings
 from django.contrib.auth import get_user_model
 from django.contrib.auth.models import Group
 from django.http import HttpRequest, HttpResponseRedirect
+from django.urls import NoReverseMatch, reverse
+from django.utils.module_loading import import_string
 from pkg_resources import parse_version
 from saml2 import BINDING_HTTP_POST, BINDING_HTTP_REDIRECT, entity
 from saml2.client import Saml2Client
 from saml2.config import Config as Saml2Config
 from saml2.response import AuthnResponse
-
-if parse_version(get_version()) >= parse_version('1.10'):
-    from django.urls import NoReverseMatch, reverse
-else:
-    from django.core.urlresolvers import NoReverseMatch, reverse
-
-if parse_version(get_version()) >= parse_version('1.7'):
-    from django.utils.module_loading import import_string
-else:
-    from django.utils.module_loading import import_by_path as import_string
 
 
 def run_hook(func_path, *args, **kwargs):
