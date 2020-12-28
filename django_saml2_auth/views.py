@@ -37,6 +37,21 @@ def denied(request: HttpRequest):
 
 @csrf_exempt
 def acs(request: HttpRequest):
+    """Assertion Consumer Service is SAML terminology for the location at a ServiceProvider that
+    accepts <samlp:Response> messages (or SAML artifacts) for the purpose of establishing a session
+    based on an assertion. Assertion is a signed authentication request from identity provider (IdP)
+    to acs endpoint.
+
+    Args:
+        request (HttpRequest): Incoming request from identity provider (IdP) for authentication
+
+    Returns:
+        HttpResponseRedirect: Redirect to various endpoints: denied, welcome or next_url (e.g.
+            the front-end app)
+
+    Notes:
+        https://wiki.shibboleth.net/confluence/display/CONCEPT/AssertionConsumerService
+    """
     # default User or custom User. Now both will work.
     User = get_user_model()
 
