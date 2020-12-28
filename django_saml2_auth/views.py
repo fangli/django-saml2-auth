@@ -20,12 +20,8 @@ from .utils import (create_new_user, decode_saml_response, default_next_url,
                     get_current_domain, get_reverse, get_saml_client, run_hook,
                     safe_get_index)
 
-try:
-    import urlparse as _urlparse
-    from urllib import unquote
-except:
-    import urllib.parse as _urlparse
-    from urllib.parse import unquote
+import urllib.parse as urlparse
+from urllib.parse import unquote
 
 
 @login_required
@@ -172,8 +168,8 @@ def signin(request: HttpRequest):
 
     try:
         if 'next=' in unquote(next_url):
-            next_url = _urlparse.parse_qs(
-                _urlparse.urlparse(unquote(next_url)).query)['next'][0]
+            next_url = urlparse.parse_qs(
+                urlparse.urlparse(unquote(next_url)).query)['next'][0]
     except:
         next_url = request.GET.get('next') or default_next_url()
 
