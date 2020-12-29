@@ -100,8 +100,9 @@ def get_assertion_url(request: HttpRequest) -> str:
     Returns:
         str: Either protocol://host or ASSERTION_URL
     """
-    if "ASSERTION_URL" in settings.SAML2_AUTH:
-        return settings.SAML2_AUTH["ASSERTION_URL"]
+    assertion_url = dictor(settings, "SAML2_AUTH.ASSERTION_URL")
+    if assertion_url:
+        return assertion_url
 
     protocol = "https" if request.is_secure() else "http"
     host = request.get_host()
