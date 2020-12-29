@@ -1,11 +1,15 @@
-from typing import Any, Callable, Iterable, Mapping, Optional, Type, Tuple, Union
+from functools import wraps
+from typing import (Any, Callable, Iterable, Mapping, Optional, Tuple, Type,
+                    Union)
 
+from dictor import dictor
 from django import get_version
 from django.conf import settings
-from django.db.models import Model
 from django.contrib.auth import get_user_model
 from django.contrib.auth.models import Group
+from django.db.models import Model
 from django.http import HttpRequest, HttpResponseRedirect
+from django.shortcuts import render
 from django.urls import NoReverseMatch, reverse
 from django.utils.module_loading import import_string
 from pkg_resources import parse_version
@@ -13,7 +17,9 @@ from saml2 import BINDING_HTTP_POST, BINDING_HTTP_REDIRECT, entity
 from saml2.client import Saml2Client
 from saml2.config import Config as Saml2Config
 from saml2.response import AuthnResponse
-from dictor import dictor
+
+from .exceptions import SAMLAuthError
+from .errors import *
 
 
 def run_hook(function_path: str,
@@ -28,29 +34,52 @@ def run_hook(function_path: str,
             e.g. models.User.create_new_user (static method)
 
     Raises:
-        ValueError: function_path isn't specified
-        ValueError: There's nothing to import. Check your hook's import path!
-        Exception: Re-raises any exception caused by import_string or the called function
+        SAMLAuthError: function_path isn't specified
+        SAMLAuthError: There's nothing to import. Check your hook's import path!
+        SAMLAuthError: Import error
+        SAMLAuthError: Re-raise any exception caused by the called function
 
     Returns:
         Optional[Any]: Any result returned from running the hook function. None is returned in case
             of any exceptions, errors in arguments and related issues.
     """
     if not function_path:
-        raise ValueError("function_path isn't specified")
+        raise SAMLAuthError("function_path isn't specified", extra={
+            "exc_type": ValueError,
+            "error_code": EMPTY_FUNCTION_PATH,
+            "reason": "There was an error processing your request.",
+            "status_code": 500
+        })
 
     path = function_path.split(".")
     if len(path) < 2:
         # Nothing to import
-        raise ValueError("There's nothing to import. Check your hook's import path!")
+        raise SAMLAuthError("There's nothing to import. Check your hook's import path!", extra={
+            "exc_type": ValueError,
+            "error_code": PATH_ERROR,
+            "reason": "There was an error processing your request.",
+            "status_code": 500
+        })
 
     module_path = ".".join(path[:-1])
     result = None
     try:
         cls = import_string(module_path)
         result = getattr(cls, path[-1])(*args, **kwargs)
-    except (ImportError, Exception) as exc:
-        raise exc
+    except ImportError as exc:
+        raise SAMLAuthError(str(exc), extra={
+            "exc_type": ImportError,
+            "error_code": IMPORT_ERROR,
+            "reason": "There was an error processing your request.",
+            "status_code": 500
+        })
+    except Exception as exc:
+        raise SAMLAuthError(str(exc), extra={
+            "exc_type": type(exc),
+            "error_code": GENERAL_EXCEPTION,
+            "reason": "There was an error processing your request.",
+            "status_code": 500
+        })
 
     return result
 
@@ -63,6 +92,10 @@ def create_new_user(email: str, firstname: str, lastname: str) -> Type[Model]:
         firstname (str): First name
         lastname (str): Last name
 
+    Raises:
+        SAMLAuthError: There was an error creating the new user.
+        SAMLAuthError: There was an error joining the user to the group.
+
     Returns:
         Type[Model]: Returns a new user object, usually a subclass of the the User model
     """
@@ -73,16 +106,32 @@ def create_new_user(email: str, firstname: str, lastname: str) -> Type[Model]:
     is_superuser = dictor(settings, "SAML2_AUTH.NEW_USER_PROFILE.SUPERUSER_STATUS", default=False)
     user_groups = dictor(settings, "SAML2_AUTH.NEW_USER_PROFILE.USER_GROUPS", default=[])
 
-    user = user_model.objects.create_user(
-        email, first_name=firstname, last_name=lastname,
-        is_active=is_active, is_staff=is_staff, is_superuser=is_superuser)
+    try:
+        user = user_model.objects.create_user(
+            email, first_name=firstname, last_name=lastname,
+            is_active=is_active, is_staff=is_staff, is_superuser=is_superuser)
+    except Exception as exc:
+        raise SAMLAuthError("There was an error creating the new user.", extra={
+            "exc_type": type(exc),
+            "error_code": CREATE_USER_ERROR,
+            "reason": "There was an error processing your request.",
+            "status_code": 500
+        })
 
-    groups = [Group.objects.get(name=group) for group in user_groups]
-    if groups:
-        if parse_version(get_version()) <= parse_version("1.8"):
-            user.groups = groups
-        else:
-            user.groups.set(groups)
+    try:
+        groups = [Group.objects.get(name=group) for group in user_groups]
+        if groups:
+            if parse_version(get_version()) <= parse_version("1.8"):
+                user.groups = groups
+            else:
+                user.groups.set(groups)
+    except Exception as exc:
+        raise SAMLAuthError("There was an error joining the user to the group.", extra={
+            "exc_type": type(exc),
+            "error_code": GROUP_JOIN_ERROR,
+            "reason": "There was an error processing your request.",
+            "status_code": 500
+        })
 
     user.save()
     user.refresh_from_db()
@@ -131,7 +180,7 @@ def get_reverse(objects: Union[Any, Iterable[Any]]) -> Optional[str]:
         objects (Union[Any, Iterable[Any]]): One or many views/urls representing a resource
 
     Raises:
-        Exception: If the function fails to return anything, an exception is raised.
+        SAMLAuthError: We got a URL reverse issue: [...]
 
     Returns:
         Optional[str]: The URL to the resource or None.
@@ -144,9 +193,12 @@ def get_reverse(objects: Union[Any, Iterable[Any]]) -> Optional[str]:
             return reverse(obj)
         except NoReverseMatch:
             pass
-    raise Exception(
-        f"We got a URL reverse issue: {str(objects)}. This is a known issue but please still "
-        "submit a ticket at https://github.com/loadimpact/django-saml2-auth/issues/new")
+    raise SAMLAuthError(f"We got a URL reverse issue: {str(objects)}", extra={
+        "exc_type": type(NoReverseMatch),
+        "error_code": NO_REVERSE_MATCH,
+        "reason": "There was an error processing your request.",
+        "status_code": 500
+    })
 
 
 def get_metadata() -> Mapping[str, Any]:
@@ -176,6 +228,9 @@ def get_saml_client(domain: str, acs: Callable[...]) -> Optional[Saml2Client]:
     Args:
         domain (str): Domain name to get SAML config for
         acs (Callable[...]): The acs endpoint
+
+    Raises:
+        SAMLAuthError: Re-raise any exception raised by Saml2Config or Saml2Client
 
     Returns:
         Optional[Saml2Client]: A Saml2Client or None
@@ -214,10 +269,18 @@ def get_saml_client(domain: str, acs: Callable[...]) -> Optional[Saml2Client]:
     if name_id_format:
         saml_settings["service"]["sp"]["name_id_format"] = name_id_format
 
-    sp_config = Saml2Config()
-    sp_config.load(saml_settings)
-    saml_client = Saml2Client(config=sp_config)
-    return saml_client
+    try:
+        sp_config = Saml2Config()
+        sp_config.load(saml_settings)
+        saml_client = Saml2Client(config=sp_config)
+        return saml_client
+    except Exception as exc:
+        raise SAMLAuthError(str(exc), extra={
+            "exc_type": type(exc),
+            "error_code": ERROR_CREATING_SAML_CONFIG_OR_CLIENT,
+            "reason": "There was an error processing your request.",
+            "status_code": 500
+        })
 
 
 def decode_saml_response(
@@ -233,6 +296,13 @@ def decode_saml_response(
         acs (Callable[...]): The acs endpoint
         denied (Callable[...]): The denied endpoint
 
+    Raises:
+        SAMLAuthError: There was no response from SAML client.
+        SAMLAuthError: There was no response from SAML identity provider.
+        SAMLAuthError: No name_id in SAML response.
+        SAMLAuthError: No issuer/entity_id in SAML response.
+        SAMLAuthError: No user identity in SAML response.
+
     Returns:
         Union[HttpResponseRedirect, Optional[AuthnResponse]]: Returns an AuthnResponse object for
         extracting user identity from or a redirect to denied endpoint.
@@ -241,21 +311,59 @@ def decode_saml_response(
     response = request.POST.get("SAMLResponse") or None
 
     if not response:
-        return HttpResponseRedirect(get_reverse([denied, "denied", "django_saml2_auth:denied"]))
+        raise SAMLAuthError("There was no response from SAML client.", extra={
+            "exc_type": ValueError,
+            "error_code": NO_SAML_RESPONSE_FROM_CLIENT,
+            "reason": "There was an error processing your request.",
+            "status_code": 500
+        })
 
-    authn_response = saml_client.parse_authn_request_response(
-        response, entity.BINDING_HTTP_POST)
-    if authn_response is None:
-        return HttpResponseRedirect(get_reverse([denied, "denied", "django_saml2_auth:denied"]))
-    if authn_response.name_id is None:
-        return HttpResponseRedirect(get_reverse([denied, "denied", "django_saml2_auth:denied"]))
+    authn_response = saml_client.parse_authn_request_response(response, entity.BINDING_HTTP_POST)
+    if not authn_response:
+        raise SAMLAuthError("There was no response from SAML identity provider.", extra={
+            "exc_type": ValueError,
+            "error_code": NO_SAML_RESPONSE_FROM_IDP,
+            "reason": "There was an error processing your request.",
+            "status_code": 500
+        })
 
-    entity_id = authn_response.issuer()
-    if entity_id is None:
-        return HttpResponseRedirect(get_reverse([denied, "denied", "django_saml2_auth:denied"]))
+    if not authn_response.name_id:
+        raise SAMLAuthError("No name_id in SAML response.", extra={
+            "exc_type": ValueError,
+            "error_code": NO_NAME_ID_IN_SAML_RESPONSE,
+            "reason": "There was an error processing your request.",
+            "status_code": 500
+        })
 
-    user_identity = authn_response.get_identity()
-    if user_identity is None:
-        return HttpResponseRedirect(get_reverse([denied, "denied", "django_saml2_auth:denied"]))
+    if not authn_response.issuer():
+        raise SAMLAuthError("No issuer/entity_id in SAML response.", extra={
+            "exc_type": ValueError,
+            "error_code": NO_ISSUER_IN_SAML_RESPONSE,
+            "reason": "There was an error processing your request.",
+            "status_code": 500
+        })
+
+    if not authn_response.get_identity():
+        raise SAMLAuthError("No user identity in SAML response.", extra={
+            "exc_type": ValueError,
+            "error_code": NO_USER_IDENTITY_IN_SAML_RESPONSE,
+            "reason": "There was an error processing your request.",
+            "status_code": 500
+        })
 
     return authn_response
+
+
+def exception_handler(function):
+    def handle_exception(exc, request):
+        return render(request, 'error.html', context=exc.extra, status=exc.extra["status_code"])
+
+    @wraps(function)
+    def wrapper(request):
+        result = None
+        try:
+            result = function(request)
+        except SAMLAuthError as exc:
+            result = handle_exception(exc, request)
+        return result
+    return wrapper

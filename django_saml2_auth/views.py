@@ -19,8 +19,11 @@ from django.utils.http import is_safe_url
 from django.views.decorators.csrf import csrf_exempt
 from pkg_resources import parse_version
 
+from .exceptions import SAMLAuthError
+from .errors import *
 from .utils import (create_new_user, decode_saml_response, get_assertion_url,
-                    get_default_next_url, get_reverse, get_saml_client, run_hook)
+                    get_default_next_url, get_reverse, get_saml_client,
+                    run_hook, exception_handler)
 
 
 @login_required
@@ -36,6 +39,7 @@ def denied(request: HttpRequest):
 
 
 @csrf_exempt
+@exception_handler
 def acs(request: HttpRequest):
     """Assertion Consumer Service is SAML terminology for the location at a ServiceProvider that
     accepts <samlp:Response> messages (or SAML artifacts) for the purpose of establishing a session
@@ -44,6 +48,11 @@ def acs(request: HttpRequest):
 
     Args:
         request (HttpRequest): Incoming request from identity provider (IdP) for authentication
+
+    Exceptions:
+        SAMLAuthError: No token specified.
+        SAMLAuthError: Cannot create user.
+        SAMLAuthError: The target user is inactive.
 
     Returns:
         HttpResponseRedirect: Redirect to various endpoints: denied, welcome or next_url (e.g.
@@ -75,7 +84,12 @@ def acs(request: HttpRequest):
     token = dictor(user_identity, f"{token_field}.0")
 
     if not token:
-        return HttpResponseRedirect(get_reverse([denied, "denied", "django_saml2_auth:denied"]))
+        raise SAMLAuthError("No token specified.", extra={
+            "exc_type": ValueError,
+            "error_code": NO_TOKEN_SPECIFIED,
+            "reason": "Token must be configured on the SAML app before logging in.",
+            "status_code": 422
+        })
 
     target_user = None
     is_new_user = False
@@ -101,7 +115,12 @@ def acs(request: HttpRequest):
 
             is_new_user = True
         else:
-            return HttpResponseRedirect(get_reverse([denied, "denied", "django_saml2_auth:denied"]))
+            raise SAMLAuthError("Cannot create user.", extra={
+                "exc_type": Exception,
+                "error_code": SHOULD_NOT_CREATE_USER,
+                "reason": "Due to current config, a new user should not be created.",
+                "status_code": 500
+            })
 
     before_login_trigger = dictor(settings, "SAML2_AUTH.TRIGGER.BEFORE_LOGIN")
     if before_login_trigger:
@@ -163,7 +182,12 @@ def acs(request: HttpRequest):
         if after_login_trigger:
             run_hook(after_login_trigger, request.session, user_identity)
     else:
-        return HttpResponseRedirect(get_reverse([denied, "denied", "django_saml2_auth:denied"]))
+        raise SAMLAuthError("The target user is inactive.", extra={
+            "exc_type": Exception,
+            "error_code": INACTIVE_USER,
+            "reason": "User is inactive.",
+            "status_code": 500
+        })
 
     if is_new_user:
         try:
@@ -174,6 +198,7 @@ def acs(request: HttpRequest):
         return HttpResponseRedirect(next_url)
 
 
+@exception_handler
 def signin(request: HttpRequest):
     next_url = request.GET.get("next") or get_default_next_url()
 
@@ -207,6 +232,7 @@ def signin(request: HttpRequest):
     return HttpResponseRedirect(redirect_url)
 
 
+@exception_handler
 def signout(request: HttpRequest):
     logout(request)
     return render(request, "django_saml2_auth/signout.html")
