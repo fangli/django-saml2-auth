@@ -18,8 +18,8 @@ from django.utils.http import is_safe_url
 from django.views.decorators.csrf import csrf_exempt
 from pkg_resources import parse_version
 
-from .utils import (create_new_user, decode_saml_response, default_next_url,
-                    get_current_domain, get_reverse, get_saml_client, run_hook,
+from .utils import (create_new_user, decode_saml_response, get_default_next_url,
+                    get_assertion_url, get_reverse, get_saml_client, run_hook,
                     safe_get_index)
 
 
@@ -28,7 +28,7 @@ def welcome(request: HttpRequest):
     try:
         return render(request, 'django_saml2_auth/welcome.html', {'user': request.user})
     except TemplateDoesNotExist:
-        return HttpResponseRedirect(default_next_url())
+        return HttpResponseRedirect(get_default_next_url())
 
 
 def denied(request: HttpRequest):
@@ -58,7 +58,7 @@ def acs(request: HttpRequest):
     authn_response = decode_saml_response(request, acs, denied)
     user_identity = authn_response.get_identity()
 
-    next_url = request.session.get('login_next_url') or default_next_url()
+    next_url = request.session.get('login_next_url') or get_default_next_url()
     # If relayState params is passed, use that else consider the previous 'next_url'
     next_url = request.POST.get('RelayState') or next_url
 
@@ -178,14 +178,14 @@ def acs(request: HttpRequest):
 
 
 def signin(request: HttpRequest):
-    next_url = request.GET.get('next') or default_next_url()
+    next_url = request.GET.get('next') or get_default_next_url()
 
     try:
         if 'next=' in unquote(next_url):
             next_url = urlparse.parse_qs(
                 urlparse.urlparse(unquote(next_url)).query)['next'][0]
     except:
-        next_url = request.GET.get('next') or default_next_url()
+        next_url = request.GET.get('next') or get_default_next_url()
 
     # Only permit signin requests where the next_url is a safe URL
     allowed_hosts = set(settings.SAML2_AUTH.get(
@@ -200,7 +200,7 @@ def signin(request: HttpRequest):
 
     request.session['login_next_url'] = next_url
 
-    saml_client = get_saml_client(get_current_domain(request), acs)
+    saml_client = get_saml_client(get_assertion_url(request), acs)
     _, info = saml_client.prepare_for_authenticate(relay_state=next_url)
 
     redirect_url = None
