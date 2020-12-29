@@ -8,7 +8,7 @@ from django.conf import settings
 from django.contrib.auth import get_user_model
 from django.contrib.auth.models import Group
 from django.db.models import Model
-from django.http import HttpRequest, HttpResponseRedirect
+from django.http import HttpRequest, HttpResponse, HttpResponseRedirect
 from django.shortcuts import render
 from django.urls import NoReverseMatch, reverse
 from django.utils.module_loading import import_string
@@ -354,12 +354,37 @@ def decode_saml_response(
     return authn_response
 
 
-def exception_handler(function):
-    def handle_exception(exc, request):
+def exception_handler(function: Callable[...]) -> Callable[...]:
+    """This decorator can be used by view function to handle exceptions
+
+    Args:
+        function (Callable[...]): View function to decorate
+
+    Returns:
+        Callable[...]: Decorated view function with exception handling
+    """
+    def handle_exception(exc: Exception, request: HttpRequest) -> HttpResponse:
+        """Render page with exception details
+
+        Args:
+            exc (Exception): An exception
+            request (HttpRequest): Incoming http request object
+
+        Returns:
+            HttpResponse: Rendered error page with details
+        """
         return render(request, 'error.html', context=exc.extra, status=exc.extra["status_code"])
 
     @wraps(function)
-    def wrapper(request):
+    def wrapper(request: HttpRequest) -> HttpResponse:
+        """Decorated function is wrapped and called here
+
+        Args:
+            request ([type]): [description]
+
+        Returns:
+            HttpResponse: Either a redirect or a response with error details
+        """
         result = None
         try:
             result = function(request)
