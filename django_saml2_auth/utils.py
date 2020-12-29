@@ -114,11 +114,13 @@ def get_default_next_url() -> Optional[str]:
     admin index.
 
     Returns:
-        Optional[str]: Returns default next url for redirection or index
+        Optional[str]: Returns default next url for redirection or admin index
     """
-    if "DEFAULT_NEXT_URL" in settings.SAML2_AUTH:
-        return settings.SAML2_AUTH["DEFAULT_NEXT_URL"]
-    # Lazily evaluate this in case we don"t have admin loaded.
+    default_next_url = dictor(settings, "SAML2_AUTH.DEFAULT_NEXT_URL")
+    if default_next_url:
+        return default_next_url
+
+    # Lazily evaluate this in case we don't have admin loaded.
     return get_reverse("admin:index")
 
 
