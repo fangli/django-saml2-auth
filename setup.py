@@ -1,6 +1,6 @@
 """The setup module for django_saml2_auth.
 See:
-https://github.com/fangli/django_saml2_auth
+https://github.com/loadimpact/django_saml2_auth
 """
 
 from codecs import open

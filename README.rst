@@ -30,14 +30,14 @@ Donate
 
 We accept your donations by clicking the awesome |star| instead of any physical transfer.
 
-.. |star| image:: https://img.shields.io/github/stars/fangli/django-saml2-auth.svg?style=social&label=Star&maxAge=86400
+.. |star| image:: https://img.shields.io/github/stars/loadimpact/django-saml2-auth.svg?style=social&label=Star&maxAge=86400
 
 
 
 Dependencies
 ============
 
-This plugin is compatible with Django 1.6/1.7/1.8/1.9/1.10/2.1/2.2. The ``pysaml2`` Python
+This plugin is compatible with Django 1.7/1.8/1.9/1.10/2.1/2.2. The ``pysaml2`` Python
 module is required.
 
 
@@ -289,8 +289,8 @@ How to Contribute
 #. Write a test which shows that the bug was fixed or that the feature works as expected.
 #. Send a pull request and bug the maintainer until it gets merged and published. :) Make sure to add yourself to AUTHORS_.
 
-.. _`the repository`: http://github.com/fangli/django-saml2-auth
-.. _AUTHORS: https://github.com/fangli/django-saml2-auth/blob/master/AUTHORS.rst
+.. _`the repository`: http://github.com/loadimpact/django-saml2-auth
+.. _AUTHORS: https://github.com/loadimpact/django-saml2-auth/blob/master/AUTHORS.rst
 
 
 Release Log
