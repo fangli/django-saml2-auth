@@ -156,25 +156,15 @@ def get_metadata() -> Mapping[str, Any]:
     Returns:
         Mapping[str, Any]: Returns a metadata object as dictionary
     """
-    if settings.SAML2_AUTH.get("TRIGGER", {}).get("GET_METADATA_AUTO_CONF_URLS", None):
-        metadata_urls = run_hook(
-            settings.SAML2_AUTH["TRIGGER"]["GET_METADATA_AUTO_CONF_URLS"])
-        return {
-            "remote": metadata_urls
-        }
+    get_metadata_trigger = dictor(settings, "SAML2_AUTH.TRIGGER.GET_METADATA_AUTO_CONF_URLS")
+    if get_metadata_trigger:
+        metadata_urls = run_hook(get_metadata_trigger)
+        return {"remote": metadata_urls}
 
-    if "METADATA_LOCAL_FILE_PATH" in settings.SAML2_AUTH:
-        return {
-            "local": [settings.SAML2_AUTH["METADATA_LOCAL_FILE_PATH"]]
-        }
+    if dictor(settings, "SAML2_AUTH.METADATA_LOCAL_FILE_PATH"):
+        return {"local": [dictor(settings, "SAML2_AUTH.METADATA_LOCAL_FILE_PATH")]}
     else:
-        return {
-            "remote": [
-                {
-                    "url": settings.SAML2_AUTH["METADATA_AUTO_CONF_URL"],
-                },
-            ]
-        }
+        return {"remote": [{"url": dictor(settings, "SAML2_AUTH.METADATA_AUTO_CONF_URL")}]}
 
 
 def get_saml_client(domain, acs) -> Optional[Saml2Client]:
