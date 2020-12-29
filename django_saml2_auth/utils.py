@@ -17,23 +17,42 @@ from saml2.response import AuthnResponse
 
 def run_hook(function_path: str,
              *args: Optional[Tuple[Any]],
-             **kwargs: Optional[Mapping[str, Any]]) -> Any:
-    """Runs a hook function with given args and kwargs. Given "models.User.create_new_user",
-    the "create_new_user" function is imported from the "models.User" module and
-    ran with args and kwargs.
+             **kwargs: Optional[Mapping[str, Any]]) -> Optional[Any]:
+    """Runs a hook function with given args and kwargs. For example, given
+    "models.User.create_new_user", the "create_new_user" function is imported from
+    the "models.User" module and run with args and kwargs.
 
     Args:
         function_path (str): A path to a hook function,
             e.g. models.User.create_new_user (static method)
 
+    Raises:
+        ValueError: function_path isn't specified
+        ValueError: There's nothing to import. Check your hook's import path!
+        Exception: Re-raises any exception caused by import_string or the called function
+
     Returns:
-        Any: Any result returned from running the hook function
+        Optional[Any]: Any result returned from running the hook function. None is returned in case
+            of any exceptions, errors in arguments and related issues.
     """
-    pkg = function_path.split(".")
-    cls_path = ".".join(pkg[:-1])
-    func = pkg[-1]
-    cls = import_string(cls_path)
-    return getattr(cls, func)(*args, **kwargs)
+    if not function_path:
+        raise ValueError("function_path isn't specified")
+
+    path = function_path.split(".")
+    if len(path) < 2:
+        # Nothing to import
+        raise ValueError(
+            "There's nothing to import. Check your hook's import path!")
+
+    module_path = ".".join(path[:-1])
+    result = None
+    try:
+        cls = import_string(module_path)
+        result = getattr(cls, path[-1])(*args, **kwargs)
+    except (ImportError, Exception) as exc:
+        raise exc
+
+    return result
 
 
 def create_new_user(email: str, firstname: str, lastname: str) -> Type[Model]:
