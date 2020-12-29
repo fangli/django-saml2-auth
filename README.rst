@@ -131,9 +131,11 @@ How to use?
             'METADATA_AUTO_CONF_URL': '[The auto(dynamic) metadata configuration URL of SAML2]',
             'METADATA_LOCAL_FILE_PATH': '[The metadata configuration file path]',
 
+            'DEBUG': False,  # Send debug information to log file
+
             # Optional settings below
             'DEFAULT_NEXT_URL': '/admin',  # Custom target redirect URL after the user get logged in. Default to /admin if not set. This setting will be overwritten if you have parameter ?next= specificed in the login URL.
-            'CREATE_USER': 'TRUE', # Create a new Django user when a new user logs in. Defaults to True.
+            'CREATE_USER': 'TRUE',  # Create a new Django user when a new user logs in. Defaults to True.
             'NEW_USER_PROFILE': {
                 'USER_GROUPS': [],  # The default group name when a new user logs in
                 'ACTIVE_STATUS': True,  # The default active status for new users
@@ -145,8 +147,8 @@ How to use?
                 'username': 'UserName',
                 'first_name': 'FirstName',
                 'last_name': 'LastName',
-                'groups': 'Groups', # Optional
-                'token': 'Token', # Mandatory
+                'groups': 'Groups',  # Optional
+                'token': 'Token',  # Mandatory
             },
             'GROUPS_MAP': {  # Optionally allow mapping SAML2 Groups to Django Groups
                 'SAML Group Name': 'Django Group Name',
@@ -157,17 +159,17 @@ How to use?
                 'AFTER_LOGIN': 'path.to.your.after.login.hook.method',
                 'GET_METADATA_AUTO_CONF_URLS': 'path.to.your.after.metadata.conf.hook.method',
             },
-            'ASSERTION_URL': 'https://mysite.com', # Custom URL to validate incoming SAML requests against
-            'ENTITY_ID': 'https://mysite.com/saml2_auth/acs/', # Populates the Issuer element in authn request
-            'NAME_ID_FORMAT': FormatString, # Sets the Format property of authn NameIDPolicy element
-            'USE_JWT': False, # Set this to True if you are running a Single Page Application (SPA) with Django Rest Framework (DRF), and are using JWT authentication to authorize client users
-            'JWT_SECRET': 'your.jwt.secret', # JWT secret to sign the message with
-            'JWT_ALGORITHM': 'HS256', # JWT algorithm to sign the message with
-            'JWT_EXP': 60, # JWT expiry time in seconds
-            'FRONTEND_URL': 'https://myfrontendclient.com', # Redirect URL for the client if you are using JWT auth with DRF. See explanation below
-            'LOGIN_CASE_SENSITIVE': True, # whether of not to get the user in case_sentive mode
-            'WANT_ASSERTIONS_SIGNED': True, # Require each assertion to be signed
-            'WANT_RESPONSE_SIGNED': False, # Require response to be signed
+            'ASSERTION_URL': 'https://mysite.com',  # Custom URL to validate incoming SAML requests against
+            'ENTITY_ID': 'https://mysite.com/saml2_auth/acs/',  # Populates the Issuer element in authn request
+            'NAME_ID_FORMAT': FormatString,  # Sets the Format property of authn NameIDPolicy element
+            'USE_JWT': False,  # Set this to True if you are running a Single Page Application (SPA) with Django Rest Framework (DRF), and are using JWT authentication to authorize client users
+            'JWT_SECRET': 'your.jwt.secret',  # JWT secret to sign the message with
+            'JWT_ALGORITHM': 'HS256',  # JWT algorithm to sign the message with
+            'JWT_EXP': 60,  # JWT expiry time in seconds
+            'FRONTEND_URL': 'https://myfrontendclient.com',  # Redirect URL for the client if you are using JWT auth with DRF. See explanation below
+            'LOGIN_CASE_SENSITIVE': True,  # whether of not to get the user in case_sentive mode
+            'WANT_ASSERTIONS_SIGNED': True,  # Require each assertion to be signed
+            'WANT_RESPONSE_SIGNED': False,  # Require response to be signed
             'ALLOWED_REDIRECT_HOSTS': ["https://myfrontendclient.com"] # Allowed hosts to redirect to using the ?next parameter
         }
 
@@ -178,13 +180,15 @@ How to use?
 Explanation
 -----------
 
-**GET_METADATA_AUTO_CONF_URLS** hook is function that returns list of metadata autoconf URLs.
+**GET_METADATA_AUTO_CONF_URLS** hook is function that returns list of metadata autoconf URLs
 
 **METADATA_AUTO_CONF_URL** Auto SAML2 metadata configuration URL
 
 **METADATA_LOCAL_FILE_PATH** SAML2 metadata configuration file path
 
-**CREATE_USER** Determines if a new Django user should be created for new users.
+**DEBUG** Send debug information to log file (defaults to False)
+
+**CREATE_USER** Determines if a new Django user should be created for new users
 
 **NEW_USER_PROFILE** Default settings for newly created users
 

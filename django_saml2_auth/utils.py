@@ -154,35 +154,39 @@ def get_metadata() -> Mapping[str, Any]:
     if available, or by checking and returning a local file path or the METADATA_AUTO_CONF_URL.
 
     Returns:
-        Mapping[str, Any]: Returns a metadata object as dictionary
+        Mapping[str, Any]: Returns a SAML metadata object as dictionary
     """
     get_metadata_trigger = dictor(settings, "SAML2_AUTH.TRIGGER.GET_METADATA_AUTO_CONF_URLS")
     if get_metadata_trigger:
         metadata_urls = run_hook(get_metadata_trigger)
         return {"remote": metadata_urls}
 
-    if dictor(settings, "SAML2_AUTH.METADATA_LOCAL_FILE_PATH"):
-        return {"local": [dictor(settings, "SAML2_AUTH.METADATA_LOCAL_FILE_PATH")]}
+    metadata_local_file_path = dictor(settings, "SAML2_AUTH.METADATA_LOCAL_FILE_PATH")
+    if metadata_local_file_path:
+        return {"local": [metadata_local_file_path]}
     else:
-        return {"remote": [{"url": dictor(settings, "SAML2_AUTH.METADATA_AUTO_CONF_URL")}]}
+        single_metadata_url = dictor(settings, "SAML2_AUTH.METADATA_AUTO_CONF_URL")
+        return {"remote": [{"url": single_metadata_url}]}
 
 
-def get_saml_client(domain, acs) -> Optional[Saml2Client]:
+def get_saml_client(domain: str, acs: Callable[...]) -> Optional[Saml2Client]:
     """Create a new Saml2Config object with the given config and return an initialized Saml2Client
     using the config object. The settings are read from django settings key: SAML2_AUTH.
 
     Args:
-        domain ([type]): [description]
-        acs ([type]): [description]
+        domain (str): Domain name to get SAML config for
+        acs (Callable[...]): The acs endpoint
 
     Returns:
-        Optional[Saml2Client]: [description]
+        Optional[Saml2Client]: A Saml2Client or None
     """
     acs_url = domain + get_reverse([acs, "acs", "django_saml2_auth:acs"])
     metadata = get_metadata()
 
     saml_settings = {
         "metadata": metadata,
+        "allow_unknown_attributes": True,
+        "debug": dictor(settings, "SAML2_AUTH.DEBUG", default=False),
         "service": {
             "sp": {
                 "endpoints": {
@@ -194,29 +198,24 @@ def get_saml_client(domain, acs) -> Optional[Saml2Client]:
                 "allow_unsolicited": True,
                 "authn_requests_signed": False,
                 "logout_requests_signed": True,
-                "want_assertions_signed": True,
-                "want_response_signed": False,
+                "want_assertions_signed": dictor(
+                    settings, "SAML2_AUTH.WANT_ASSERTIONS_SIGNED", default=True),
+                "want_response_signed": dictor(
+                    settings, "SAML2_AUTH.WANT_RESPONSE_SIGNED", default=False),
             },
         },
     }
 
-    if "ENTITY_ID" in settings.SAML2_AUTH:
-        saml_settings["entityid"] = settings.SAML2_AUTH["ENTITY_ID"]
+    entity_id = dictor(settings, "SAML2_AUTH.ENTITY_ID")
+    if entity_id:
+        saml_settings["entityid"] = entity_id
 
-    if "NAME_ID_FORMAT" in settings.SAML2_AUTH:
-        saml_settings["service"]["sp"]["name_id_format"] = settings.SAML2_AUTH["NAME_ID_FORMAT"]
-
-    if "WANT_ASSERTIONS_SIGNED" in settings.SAML2_AUTH:
-        saml_settings["service"]["sp"]["want_assertions_signed"] = settings.SAML2_AUTH[
-            "WANT_ASSERTIONS_SIGNED"]
-
-    if "WANT_RESPONSE_SIGNED" in settings.SAML2_AUTH:
-        saml_settings["service"]["sp"]["want_response_signed"] = settings.SAML2_AUTH[
-            "WANT_RESPONSE_SIGNED"]
+    name_id_format = dictor(settings, "SAML2_AUTH.NAME_ID_FORMAT")
+    if name_id_format:
+        saml_settings["service"]["sp"]["name_id_format"] = name_id_format
 
     sp_config = Saml2Config()
     sp_config.load(saml_settings)
-    sp_config.allow_unknown_attributes = True
     saml_client = Saml2Client(config=sp_config)
     return saml_client
 
