@@ -18,8 +18,8 @@ from saml2.response import AuthnResponse
 def run_hook(function_path: str,
              *args: Optional[Tuple[Any]],
              **kwargs: Optional[Mapping[str, Any]]) -> Any:
-    """Runs a hook function with given args and kwargs. Given 'models.User.create_new_user',
-    the 'create_new_user' function is imported from the 'models.User' module and
+    """Runs a hook function with given args and kwargs. Given "models.User.create_new_user",
+    the "create_new_user" function is imported from the "models.User" module and
     ran with args and kwargs.
 
     Args:
@@ -29,8 +29,8 @@ def run_hook(function_path: str,
     Returns:
         Any: Any result returned from running the hook function
     """
-    pkg = function_path.split('.')
-    cls_path = '.'.join(pkg[:-1])
+    pkg = function_path.split(".")
+    cls_path = ".".join(pkg[:-1])
     func = pkg[-1]
     cls = import_string(cls_path)
     return getattr(cls, func)(*args, **kwargs)
@@ -53,17 +53,17 @@ def create_new_user(email: str, firstname: str, lastname: str) -> Type[Model]:
     user.first_name = firstname
     user.last_name = lastname
     groups = [Group.objects.get(name=x) for x in settings.SAML2_AUTH.get(
-        'NEW_USER_PROFILE', {}).get('USER_GROUPS', [])]
-    if parse_version(get_version()) >= parse_version('2.0'):
+        "NEW_USER_PROFILE", {}).get("USER_GROUPS", [])]
+    if parse_version(get_version()) >= parse_version("2.0"):
         user.groups.set(groups)
     else:
         user.groups = groups
     user.is_active = settings.SAML2_AUTH.get(
-        'NEW_USER_PROFILE', {}).get('ACTIVE_STATUS', True)
+        "NEW_USER_PROFILE", {}).get("ACTIVE_STATUS", True)
     user.is_staff = settings.SAML2_AUTH.get(
-        'NEW_USER_PROFILE', {}).get('STAFF_STATUS', True)
+        "NEW_USER_PROFILE", {}).get("STAFF_STATUS", True)
     user.is_superuser = settings.SAML2_AUTH.get(
-        'NEW_USER_PROFILE', {}).get('SUPERUSER_STATUS', False)
+        "NEW_USER_PROFILE", {}).get("SUPERUSER_STATUS", False)
     user.save()
     user.refresh_from_db()
 
@@ -80,12 +80,12 @@ def get_assertion_url(request: HttpRequest) -> str:
     Returns:
         str: Either protocol://host or ASSERTION_URL
     """
-    if 'ASSERTION_URL' in settings.SAML2_AUTH:
-        return settings.SAML2_AUTH['ASSERTION_URL']
+    if "ASSERTION_URL" in settings.SAML2_AUTH:
+        return settings.SAML2_AUTH["ASSERTION_URL"]
 
-    protocol = 'https' if request.is_secure() else 'http'
+    protocol = "https" if request.is_secure() else "http"
     host = request.get_host()
-    return f'{protocol}://{host}'
+    return f"{protocol}://{host}"
 
 
 def get_default_next_url() -> Optional[str]:
@@ -95,10 +95,10 @@ def get_default_next_url() -> Optional[str]:
     Returns:
         Optional[str]: Returns default next url for redirection or index
     """
-    if 'DEFAULT_NEXT_URL' in settings.SAML2_AUTH:
-        return settings.SAML2_AUTH['DEFAULT_NEXT_URL']
-    # Lazily evaluate this in case we don't have admin loaded.
-    return get_reverse('admin:index')
+    if "DEFAULT_NEXT_URL" in settings.SAML2_AUTH:
+        return settings.SAML2_AUTH["DEFAULT_NEXT_URL"]
+    # Lazily evaluate this in case we don"t have admin loaded.
+    return get_reverse("admin:index")
 
 
 def safe_get_index(iterable: Iterable, index: int) -> Optional[Any]:
@@ -138,8 +138,8 @@ def get_reverse(objects: Union[Any, Iterable[Any]]) -> Optional[str]:
         except NoReverseMatch:
             pass
     raise Exception(
-        f'We got a URL reverse issue: {str(objects)}. This is a known issue but please still '
-        'submit a ticket at https://github.com/loadimpact/django-saml2-auth/issues/new')
+        f"We got a URL reverse issue: {str(objects)}. This is a known issue but please still "
+        "submit a ticket at https://github.com/loadimpact/django-saml2-auth/issues/new")
 
 
 def get_metadata() -> Mapping[str, Any]:
@@ -149,22 +149,22 @@ def get_metadata() -> Mapping[str, Any]:
     Returns:
         Mapping[str, Any]: Returns a metadata object as dictionary
     """
-    if settings.SAML2_AUTH.get('TRIGGER', {}).get('GET_METADATA_AUTO_CONF_URLS', None):
+    if settings.SAML2_AUTH.get("TRIGGER", {}).get("GET_METADATA_AUTO_CONF_URLS", None):
         metadata_urls = run_hook(
-            settings.SAML2_AUTH['TRIGGER']['GET_METADATA_AUTO_CONF_URLS'])
+            settings.SAML2_AUTH["TRIGGER"]["GET_METADATA_AUTO_CONF_URLS"])
         return {
-            'remote': metadata_urls
+            "remote": metadata_urls
         }
 
-    if 'METADATA_LOCAL_FILE_PATH' in settings.SAML2_AUTH:
+    if "METADATA_LOCAL_FILE_PATH" in settings.SAML2_AUTH:
         return {
-            'local': [settings.SAML2_AUTH['METADATA_LOCAL_FILE_PATH']]
+            "local": [settings.SAML2_AUTH["METADATA_LOCAL_FILE_PATH"]]
         }
     else:
         return {
-            'remote': [
+            "remote": [
                 {
-                    "url": settings.SAML2_AUTH['METADATA_AUTO_CONF_URL'],
+                    "url": settings.SAML2_AUTH["METADATA_AUTO_CONF_URL"],
                 },
             ]
         }
@@ -181,41 +181,41 @@ def get_saml_client(domain, acs) -> Optional[Saml2Client]:
     Returns:
         Optional[Saml2Client]: [description]
     """
-    acs_url = domain + get_reverse([acs, 'acs', 'django_saml2_auth:acs'])
+    acs_url = domain + get_reverse([acs, "acs", "django_saml2_auth:acs"])
     metadata = get_metadata()
 
     saml_settings = {
-        'metadata': metadata,
-        'service': {
-            'sp': {
-                'endpoints': {
-                    'assertion_consumer_service': [
+        "metadata": metadata,
+        "service": {
+            "sp": {
+                "endpoints": {
+                    "assertion_consumer_service": [
                         (acs_url, BINDING_HTTP_REDIRECT),
                         (acs_url, BINDING_HTTP_POST)
                     ],
                 },
-                'allow_unsolicited': True,
-                'authn_requests_signed': False,
-                'logout_requests_signed': True,
-                'want_assertions_signed': True,
-                'want_response_signed': False,
+                "allow_unsolicited": True,
+                "authn_requests_signed": False,
+                "logout_requests_signed": True,
+                "want_assertions_signed": True,
+                "want_response_signed": False,
             },
         },
     }
 
-    if 'ENTITY_ID' in settings.SAML2_AUTH:
-        saml_settings['entityid'] = settings.SAML2_AUTH['ENTITY_ID']
+    if "ENTITY_ID" in settings.SAML2_AUTH:
+        saml_settings["entityid"] = settings.SAML2_AUTH["ENTITY_ID"]
 
-    if 'NAME_ID_FORMAT' in settings.SAML2_AUTH:
-        saml_settings['service']['sp']['name_id_format'] = settings.SAML2_AUTH['NAME_ID_FORMAT']
+    if "NAME_ID_FORMAT" in settings.SAML2_AUTH:
+        saml_settings["service"]["sp"]["name_id_format"] = settings.SAML2_AUTH["NAME_ID_FORMAT"]
 
-    if 'WANT_ASSERTIONS_SIGNED' in settings.SAML2_AUTH:
-        saml_settings['service']['sp']['want_assertions_signed'] = settings.SAML2_AUTH[
-            'WANT_ASSERTIONS_SIGNED']
+    if "WANT_ASSERTIONS_SIGNED" in settings.SAML2_AUTH:
+        saml_settings["service"]["sp"]["want_assertions_signed"] = settings.SAML2_AUTH[
+            "WANT_ASSERTIONS_SIGNED"]
 
-    if 'WANT_RESPONSE_SIGNED' in settings.SAML2_AUTH:
-        saml_settings['service']['sp']['want_response_signed'] = settings.SAML2_AUTH[
-            'WANT_RESPONSE_SIGNED']
+    if "WANT_RESPONSE_SIGNED" in settings.SAML2_AUTH:
+        saml_settings["service"]["sp"]["want_response_signed"] = settings.SAML2_AUTH[
+            "WANT_RESPONSE_SIGNED"]
 
     sp_config = Saml2Config()
     sp_config.load(saml_settings)
@@ -229,7 +229,7 @@ def decode_saml_response(
         acs: Callable[...],
         denied: Callable[...]) -> Union[HttpResponseRedirect, Optional[AuthnResponse]]:
     """Given a request, the authentication response inside the SAML response body is parsed,
-    decoded and returned. If there's any issues parsing the request, the identity or the issuer,
+    decoded and returned. If there"s any issues parsing the request, the identity or the issuer,
     the user is redirected to denied page.
 
     Args:
@@ -242,24 +242,24 @@ def decode_saml_response(
         extracting user identity from or a redirect to denied endpoint.
     """
     saml_client = get_saml_client(get_assertion_url(request), acs)
-    response = request.POST.get('SAMLResponse') or None
+    response = request.POST.get("SAMLResponse") or None
 
     if not response:
-        return HttpResponseRedirect(get_reverse([denied, 'denied', 'django_saml2_auth:denied']))
+        return HttpResponseRedirect(get_reverse([denied, "denied", "django_saml2_auth:denied"]))
 
     authn_response = saml_client.parse_authn_request_response(
         response, entity.BINDING_HTTP_POST)
     if authn_response is None:
-        return HttpResponseRedirect(get_reverse([denied, 'denied', 'django_saml2_auth:denied']))
+        return HttpResponseRedirect(get_reverse([denied, "denied", "django_saml2_auth:denied"]))
     if authn_response.name_id is None:
-        return HttpResponseRedirect(get_reverse([denied, 'denied', 'django_saml2_auth:denied']))
+        return HttpResponseRedirect(get_reverse([denied, "denied", "django_saml2_auth:denied"]))
 
     entity_id = authn_response.issuer()
     if entity_id is None:
-        return HttpResponseRedirect(get_reverse([denied, 'denied', 'django_saml2_auth:denied']))
+        return HttpResponseRedirect(get_reverse([denied, "denied", "django_saml2_auth:denied"]))
 
     user_identity = authn_response.get_identity()
     if user_identity is None:
-        return HttpResponseRedirect(get_reverse([denied, 'denied', 'django_saml2_auth:denied']))
+        return HttpResponseRedirect(get_reverse([denied, "denied", "django_saml2_auth:denied"]))
 
     return authn_response
