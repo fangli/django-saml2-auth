@@ -13,6 +13,7 @@ from saml2 import BINDING_HTTP_POST, BINDING_HTTP_REDIRECT, entity
 from saml2.client import Saml2Client
 from saml2.config import Config as Saml2Config
 from saml2.response import AuthnResponse
+from dictor import dictor
 
 
 def run_hook(function_path: str,
@@ -41,8 +42,7 @@ def run_hook(function_path: str,
     path = function_path.split(".")
     if len(path) < 2:
         # Nothing to import
-        raise ValueError(
-            "There's nothing to import. Check your hook's import path!")
+        raise ValueError("There's nothing to import. Check your hook's import path!")
 
     module_path = ".".join(path[:-1])
     result = None
@@ -68,21 +68,22 @@ def create_new_user(email: str, firstname: str, lastname: str) -> Type[Model]:
     """
     user_model = get_user_model()
 
-    user = user_model.objects.create_user(email)
-    user.first_name = firstname
-    user.last_name = lastname
-    groups = [Group.objects.get(name=x) for x in settings.SAML2_AUTH.get(
-        "NEW_USER_PROFILE", {}).get("USER_GROUPS", [])]
-    if parse_version(get_version()) >= parse_version("2.0"):
-        user.groups.set(groups)
-    else:
-        user.groups = groups
-    user.is_active = settings.SAML2_AUTH.get(
-        "NEW_USER_PROFILE", {}).get("ACTIVE_STATUS", True)
-    user.is_staff = settings.SAML2_AUTH.get(
-        "NEW_USER_PROFILE", {}).get("STAFF_STATUS", True)
-    user.is_superuser = settings.SAML2_AUTH.get(
-        "NEW_USER_PROFILE", {}).get("SUPERUSER_STATUS", False)
+    is_active = dictor(settings, "SAML2_AUTH.NEW_USER_PROFILE.ACTIVE_STATUS", default=True)
+    is_staff = dictor(settings, "SAML2_AUTH.NEW_USER_PROFILE.STAFF_STATUS", default=False)
+    is_superuser = dictor(settings, "SAML2_AUTH.NEW_USER_PROFILE.SUPERUSER_STATUS", default=False)
+    user_groups = dictor(settings, "SAML2_AUTH.NEW_USER_PROFILE.USER_GROUPS", default=[])
+
+    user = user_model.objects.create_user(
+        email, first_name=firstname, last_name=lastname,
+        is_active=is_active, is_staff=is_staff, is_superuser=is_superuser)
+
+    groups = [Group.objects.get(name=group) for group in user_groups]
+    if groups:
+        if parse_version(get_version()) <= parse_version("1.8"):
+            user.groups = groups
+        else:
+            user.groups.set(groups)
+
     user.save()
     user.refresh_from_db()
 
