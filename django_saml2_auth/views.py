@@ -179,14 +179,13 @@ def signin(request: HttpRequest):
 
     try:
         if "next=" in unquote(next_url):
-            next_url = urlparse.parse_qs(
-                urlparse.urlparse(unquote(next_url)).query)["next"][0]
+            parsed_next_url = urlparse.parse_qs(urlparse.urlparse(unquote(next_url)).query)
+            next_url = dictor(parsed_next_url, "next.0")
     except:
         next_url = request.GET.get("next") or get_default_next_url()
 
     # Only permit signin requests where the next_url is a safe URL
-    allowed_hosts = set(settings.SAML2_AUTH.get(
-        "ALLOWED_REDIRECT_HOSTS") or [])
+    allowed_hosts = set(dictor(settings, "SAML2_AUTH.ALLOWED_REDIRECT_HOSTS", default=[]))
     if parse_version(get_version()) >= parse_version("2.0"):
         url_ok = is_safe_url(next_url, allowed_hosts)
     else:
