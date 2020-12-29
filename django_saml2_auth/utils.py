@@ -124,22 +124,6 @@ def get_default_next_url() -> Optional[str]:
     return get_reverse("admin:index")
 
 
-def safe_get_index(iterable: Iterable, index: int) -> Optional[Any]:
-    """Given a list and an index, returns the item at index or None
-
-    Args:
-        iterable (Iterable): An iterable, e.g. a list of items
-        index (int): Index in a given iterable
-
-    Returns:
-        Optional[Any]: Returns the item at the given index or None
-    """
-    try:
-        return iterable[index]
-    except IndexError:
-        return None
-
-
 def get_reverse(objects: Union[Any, Iterable[Any]]) -> Optional[str]:
     """Given one or a list of views/urls(s), returns the corresponding URL to that view.
 
