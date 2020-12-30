@@ -23,7 +23,7 @@ from .exceptions import SAMLAuthError
 from .errors import *
 from .utils import (create_new_user, decode_saml_response, get_assertion_url,
                     get_default_next_url, get_reverse, get_saml_client,
-                    run_hook, exception_handler)
+                    run_hook, extract_user_identity, exception_handler)
 
 
 @login_required
@@ -66,35 +66,16 @@ def acs(request: HttpRequest):
 
     authn_response = decode_saml_response(request, acs, denied)
     user_identity = authn_response.get_identity()
+    user = extract_user_identity(user_identity)
 
     next_url = request.session.get("login_next_url") or get_default_next_url()
     # If relayState params is passed, use that else consider the previous "next_url"
     next_url = request.POST.get("RelayState") or next_url
 
-    email_field = dictor(settings, "ATTRIBUTES_MAP.email", default="user.email")
-    username_field = dictor(settings, "ATTRIBUTES_MAP.username", default="user.username")
-    firstname_field = dictor(settings, "ATTRIBUTES_MAP.first_name", default="user.first_name")
-    lastname_field = dictor(settings, "ATTRIBUTES_MAP.last_name", default="user.last_name")
-    token_field = dictor(settings, "ATTRIBUTES_MAP.token", default="token")
-
-    user_email = dictor(user_identity, f"{email_field}/0", pathsep="/")  # Path includes "."
-    user_name = dictor(user_identity, f"{username_field}/0", pathsep="/")
-    user_first_name = dictor(user_identity, f"{firstname_field}/0", pathsep="/")
-    user_last_name = dictor(user_identity, f"{lastname_field}/0", pathsep="/")
-    token = dictor(user_identity, f"{token_field}.0")
-
-    if not token:
-        raise SAMLAuthError("No token specified.", extra={
-            "exc_type": ValueError,
-            "error_code": NO_TOKEN_SPECIFIED,
-            "reason": "Token must be configured on the SAML app before logging in.",
-            "status_code": 422
-        })
-
     target_user = None
     is_new_user = False
     login_case_sensitive = True
-    user_id = user_email if user_model.USERNAME_FIELD == "email" else user_name
+    user_id = user["email"] if user_model.USERNAME_FIELD == "email" else user["user_name"]
     # Should email be case-sensitive or not. Default is False (case-insensitive).
     login_case_sensitive = dictor(settings, "SAML2_AUTH.LOGIN_CASE_SENSITIVE", default=False)
     id_field = (
@@ -107,7 +88,7 @@ def acs(request: HttpRequest):
     except user_model.DoesNotExist:
         should_create_new_user = dictor(settings, "SAML2_AUTH.CREATE_USER", default=True)
         if should_create_new_user:
-            target_user = create_new_user(user_email, user_first_name, user_last_name)
+            target_user = create_new_user(user["email"], user["first_name"], user["last_name"])
 
             create_user_trigger = dictor(settings, "SAML2_AUTH.TRIGGER.CREATE_USER")
             if create_user_trigger:

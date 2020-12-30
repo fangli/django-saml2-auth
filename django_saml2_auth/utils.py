@@ -1,6 +1,6 @@
 from functools import wraps
-from typing import (Any, Callable, Iterable, Mapping, Optional, Tuple, Type,
-                    Union)
+from typing import (Any, Callable, Dict, Iterable, Mapping, Optional, Tuple,
+                    Type, Union)
 
 from dictor import dictor
 from django import get_version
@@ -18,8 +18,8 @@ from saml2.client import Saml2Client
 from saml2.config import Config as Saml2Config
 from saml2.response import AuthnResponse
 
-from .exceptions import SAMLAuthError
 from .errors import *
+from .exceptions import SAMLAuthError
 
 
 def run_hook(function_path: str,
@@ -352,6 +352,32 @@ def decode_saml_response(
         })
 
     return authn_response
+
+
+def extract_user_identity(user_identity: Dict[str, Any]) -> Dict[str, Any]:
+    email_field = dictor(settings, "ATTRIBUTES_MAP.email", default="user.email")
+    username_field = dictor(settings, "ATTRIBUTES_MAP.username", default="user.username")
+    firstname_field = dictor(settings, "ATTRIBUTES_MAP.first_name", default="user.first_name")
+    lastname_field = dictor(settings, "ATTRIBUTES_MAP.last_name", default="user.last_name")
+    token_field = dictor(settings, "ATTRIBUTES_MAP.token", default="token")
+
+    user = {}
+
+    user["email"] = dictor(user_identity, f"{email_field}/0", pathsep="/")  # Path includes "."
+    user["user_name"] = dictor(user_identity, f"{username_field}/0", pathsep="/")
+    user["first_name"] = dictor(user_identity, f"{firstname_field}/0", pathsep="/")
+    user["last_name"] = dictor(user_identity, f"{lastname_field}/0", pathsep=" /")
+    user["token"] = dictor(user_identity, f"{token_field}.0")
+
+    if not user["token"]:
+        raise SAMLAuthError("No token specified.", extra={
+            "exc_type": ValueError,
+            "error_code": NO_TOKEN_SPECIFIED,
+            "reason": "Token must be configured on the SAML app before logging in.",
+            "status_code": 422
+        })
+
+    return user
 
 
 def exception_handler(function: Callable[...]) -> Callable[...]:
