@@ -148,7 +148,7 @@ def acs(request: HttpRequest):
             "exp": (datetime.utcnow() +
                     timedelta(seconds=jwt_expiration)).timestamp()
         }
-        jwt_token = jwt.encode(payload, jwt_secret, algorithm=jwt_algorithm).decode("ascii")
+        jwt_token = jwt.encode(payload, jwt_secret, algorithm=jwt_algorithm)
         query = f"?token={jwt_token}"
 
         frontend_url = dictor(settings, "SAML2_AUTH.FRONTEND_URL", default=next_url)
