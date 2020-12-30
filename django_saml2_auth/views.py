@@ -19,11 +19,12 @@ from django.utils.http import is_safe_url
 from django.views.decorators.csrf import csrf_exempt
 from pkg_resources import parse_version
 
-from .exceptions import SAMLAuthError
 from .errors import *
-from .utils import (create_new_user, decode_saml_response, get_assertion_url,
+from .exceptions import SAMLAuthError
+from .utils import (get_or_create_user, decode_saml_response, exception_handler,
+                    extract_user_identity, get_assertion_url,
                     get_default_next_url, get_reverse, get_saml_client,
-                    run_hook, extract_user_identity, exception_handler)
+                    run_hook)
 
 
 @login_required
@@ -72,70 +73,13 @@ def acs(request: HttpRequest):
     # If relayState params is passed, use that else consider the previous "next_url"
     next_url = request.POST.get("RelayState") or next_url
 
-    target_user = None
-    is_new_user = False
-    login_case_sensitive = True
-    user_id = user["email"] if user_model.USERNAME_FIELD == "email" else user["user_name"]
-    # Should email be case-sensitive or not. Default is False (case-insensitive).
-    login_case_sensitive = dictor(settings, "SAML2_AUTH.LOGIN_CASE_SENSITIVE", default=False)
-    id_field = (
-        user_model.USERNAME_FIELD
-        if login_case_sensitive
-        else f"{user_model.USERNAME_FIELD}__iexact")
-
-    try:
-        target_user = user_model.objects.get(**{id_field: user_id})
-    except user_model.DoesNotExist:
-        should_create_new_user = dictor(settings, "SAML2_AUTH.CREATE_USER", default=True)
-        if should_create_new_user:
-            target_user = create_new_user(user["email"], user["first_name"], user["last_name"])
-
-            create_user_trigger = dictor(settings, "SAML2_AUTH.TRIGGER.CREATE_USER")
-            if create_user_trigger:
-                run_hook(create_user_trigger, user)
-
-            is_new_user = True
-        else:
-            raise SAMLAuthError("Cannot create user.", extra={
-                "exc_type": Exception,
-                "error_code": SHOULD_NOT_CREATE_USER,
-                "reason": "Due to current config, a new user should not be created.",
-                "status_code": 500
-            })
+    is_new_user, target_user = get_or_create_user(user)
 
     before_login_trigger = dictor(settings, "SAML2_AUTH.TRIGGER.BEFORE_LOGIN")
     if before_login_trigger:
         run_hook(before_login_trigger, user)
 
-    # Optionally update this user's group assignments by updating group memberships from SAML groups
-    # to Django equivalents
-    group_attribute = dictor(settings, "SAML2_AUTH.ATTRIBUTES_MAP.groups")
-    group_map = dictor(settings, "SAML2_AUTH.GROUPS_MAP")
-
-    if group_attribute and group_attribute in user_identity:
-        groups = []
-
-        for group_name in user_identity[group_attribute]:
-            # Group names can optionally be mapped to different names in Django
-            if group_map and group_name in group_map:
-                group_name_django = group_map[group_name]
-            else:
-                group_name_django = group_name
-
-            try:
-                groups.append(Group.objects.get(name=group_name_django))
-            except Group.DoesNotExist:
-                pass
-
-        if parse_version(get_version()) >= parse_version("2.0"):
-            target_user.groups.set(groups)
-        else:
-            target_user.groups = groups
-
     request.session.flush()
-
-    # Retrieve user object from database again
-    target_user = user_model.objects.get(**{id_field: user_id})
 
     use_jwt = dictor(settings, "SAML2_AUTH.USE_JWT", default=False)
     if use_jwt and target_user.is_active:

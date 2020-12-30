@@ -380,6 +380,76 @@ def extract_user_identity(user_identity: Dict[str, Any]) -> Dict[str, Any]:
     return user
 
 
+def get_or_create_user(user: Dict[str, Any]) -> Tuple[bool, Type[Model]]:
+    """Get or create a new user and optionally add it to one or more group(s)
+
+    Args:
+        user (Dict[str, Any]): User information
+
+    Raises:
+        SAMLAuthError: Cannot create user.
+
+    Returns:
+        Tuple[bool, Type[Model]]: A tuple containing user creation status and user object
+    """
+    user_model = get_user_model()
+    created = False
+    user_id = user["email"] if user_model.USERNAME_FIELD == "email" else user["user_name"]
+    # Should email be case-sensitive or not. Default is False (case-insensitive).
+    login_case_sensitive = dictor(settings, "SAML2_AUTH.LOGIN_CASE_SENSITIVE", default=False)
+    id_field = (
+        user_model.USERNAME_FIELD
+        if login_case_sensitive
+        else f"{user_model.USERNAME_FIELD}__iexact")
+
+    try:
+        target_user = user_model.objects.get(**{id_field: user_id})
+    except user_model.DoesNotExist:
+        should_create_new_user = dictor(settings, "SAML2_AUTH.CREATE_USER", default=True)
+        if should_create_new_user:
+            target_user = create_new_user(user["email"], user["first_name"], user["last_name"])
+
+            create_user_trigger = dictor(settings, "SAML2_AUTH.TRIGGER.CREATE_USER")
+            if create_user_trigger:
+                run_hook(create_user_trigger, user)
+
+            created = True
+        else:
+            raise SAMLAuthError("Cannot create user.", extra={
+                "exc_type": Exception,
+                "error_code": SHOULD_NOT_CREATE_USER,
+                "reason": "Due to current config, a new user should not be created.",
+                "status_code": 500
+            })
+
+    # Optionally update this user's group assignments by updating group memberships from SAML groups
+    # to Django equivalents
+    group_attribute = dictor(settings, "SAML2_AUTH.ATTRIBUTES_MAP.groups")
+    group_map = dictor(settings, "SAML2_AUTH.GROUPS_MAP")
+
+    if group_attribute and group_attribute in user["user_identity"]:
+        groups = []
+
+        for group_name in user["user_identity"][group_attribute]:
+            # Group names can optionally be mapped to different names in Django
+            if group_map and group_name in group_map:
+                group_name_django = group_map[group_name]
+            else:
+                group_name_django = group_name
+
+            try:
+                groups.append(Group.objects.get(name=group_name_django))
+            except Group.DoesNotExist:
+                pass
+
+        if parse_version(get_version()) >= parse_version("2.0"):
+            target_user.groups.set(groups)
+        else:
+            target_user.groups = groups
+
+    return (created, target_user)
+
+
 def exception_handler(function: Callable[...]) -> Callable[...]:
     """This decorator can be used by view function to handle exceptions
 
