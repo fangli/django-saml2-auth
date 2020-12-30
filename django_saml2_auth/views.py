@@ -59,9 +59,6 @@ def acs(request: HttpRequest):
     Notes:
         https://wiki.shibboleth.net/confluence/display/CONCEPT/AssertionConsumerService
     """
-    # default User or custom User. Now both will work.
-    user_model = get_user_model()
-
     authn_response = decode_saml_response(request, acs)
     user_identity = authn_response.get_identity()
     user = extract_user_identity(user_identity)
