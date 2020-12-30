@@ -92,7 +92,7 @@ def acs(request: HttpRequest):
 
             create_user_trigger = dictor(settings, "SAML2_AUTH.TRIGGER.CREATE_USER")
             if create_user_trigger:
-                run_hook(create_user_trigger, user_identity)
+                run_hook(create_user_trigger, user)
 
             is_new_user = True
         else:
@@ -105,7 +105,7 @@ def acs(request: HttpRequest):
 
     before_login_trigger = dictor(settings, "SAML2_AUTH.TRIGGER.BEFORE_LOGIN")
     if before_login_trigger:
-        run_hook(before_login_trigger, user_identity)
+        run_hook(before_login_trigger, user)
 
     # Optionally update this user's group assignments by updating group memberships from SAML groups
     # to Django equivalents
@@ -161,7 +161,7 @@ def acs(request: HttpRequest):
 
         after_login_trigger = dictor(settings, "SAML2_AUTH.TRIGGER.AFTER_LOGIN")
         if after_login_trigger:
-            run_hook(after_login_trigger, request.session, user_identity)
+            run_hook(after_login_trigger, request.session, user)
     else:
         raise SAMLAuthError("The target user is inactive.", extra={
             "exc_type": Exception,

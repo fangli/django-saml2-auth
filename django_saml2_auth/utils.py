@@ -362,12 +362,14 @@ def extract_user_identity(user_identity: Dict[str, Any]) -> Dict[str, Any]:
     token_field = dictor(settings, "ATTRIBUTES_MAP.token", default="token")
 
     user = {}
-
     user["email"] = dictor(user_identity, f"{email_field}/0", pathsep="/")  # Path includes "."
     user["user_name"] = dictor(user_identity, f"{username_field}/0", pathsep="/")
     user["first_name"] = dictor(user_identity, f"{firstname_field}/0", pathsep="/")
     user["last_name"] = dictor(user_identity, f"{lastname_field}/0", pathsep=" /")
     user["token"] = dictor(user_identity, f"{token_field}.0")
+
+    # For backwards compatibility
+    user["user_identity"] = user_identity
 
     if not user["token"]:
         raise SAMLAuthError("No token specified.", extra={
