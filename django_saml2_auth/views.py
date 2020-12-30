@@ -64,7 +64,7 @@ def acs(request: HttpRequest):
     # default User or custom User. Now both will work.
     user_model = get_user_model()
 
-    authn_response = decode_saml_response(request, acs, denied)
+    authn_response = decode_saml_response(request, acs)
     user_identity = authn_response.get_identity()
     user = extract_user_identity(user_identity)
 

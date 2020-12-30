@@ -285,16 +285,14 @@ def get_saml_client(domain: str, acs: Callable[...]) -> Optional[Saml2Client]:
 
 def decode_saml_response(
         request: HttpRequest,
-        acs: Callable[...],
-        denied: Callable[...]) -> Union[HttpResponseRedirect, Optional[AuthnResponse]]:
+        acs: Callable[...]) -> Union[HttpResponseRedirect, Optional[AuthnResponse]]:
     """Given a request, the authentication response inside the SAML response body is parsed,
-    decoded and returned. If there"s any issues parsing the request, the identity or the issuer,
-    the user is redirected to denied page.
+    decoded and returned. If there are any issues parsing the request, the identity or the issuer,
+    an exception is raised.
 
     Args:
         request (HttpRequest): Django request object from identity provider (IdP)
         acs (Callable[...]): The acs endpoint
-        denied (Callable[...]): The denied endpoint
 
     Raises:
         SAMLAuthError: There was no response from SAML client.
@@ -305,7 +303,7 @@ def decode_saml_response(
 
     Returns:
         Union[HttpResponseRedirect, Optional[AuthnResponse]]: Returns an AuthnResponse object for
-        extracting user identity from or a redirect to denied endpoint.
+        extracting user identity from.
     """
     saml_client = get_saml_client(get_assertion_url(request), acs)
     response = request.POST.get("SAMLResponse") or None
