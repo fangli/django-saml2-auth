@@ -1,7 +1,9 @@
+from datetime import datetime, timedelta
 from functools import wraps
 from typing import (Any, Callable, Dict, Iterable, Mapping, Optional, Tuple,
                     Type, Union)
 
+import jwt
 from dictor import dictor
 from django import get_version
 from django.conf import settings
@@ -448,6 +450,27 @@ def get_or_create_user(user: Dict[str, Any]) -> Tuple[bool, Type[Model]]:
             target_user.groups = groups
 
     return (created, target_user)
+
+
+def create_jwt_token(target_user: Type[Model]) -> str:
+    """Create a new JWT token
+
+    Args:
+        target_user (Type[Model]): A user object queried from DB
+
+    Returns:
+        str: JWT token
+    """
+    jwt_secret = dictor(settings, "SAML2_AUTH.JWT_SECRET")
+    jwt_algorithm = dictor(settings, "SAML2_AUTH.JWT_ALGORITHM")
+    jwt_expiration = dictor(settings, "SAML2_AUTH.JWT_EXP", default=60)  # default: 1 minute
+    payload = {
+        "email": target_user.email,
+        "exp": (datetime.utcnow() +
+                timedelta(seconds=jwt_expiration)).timestamp()
+    }
+    jwt_token = jwt.encode(payload, jwt_secret, algorithm=jwt_algorithm)
+    return jwt_token
 
 
 def exception_handler(function: Callable[...]) -> Callable[...]:

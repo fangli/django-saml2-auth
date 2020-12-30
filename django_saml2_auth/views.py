@@ -2,16 +2,13 @@
 # -*- coding:utf-8 -*-
 
 import urllib.parse as urlparse
-from datetime import datetime, timedelta
 from urllib.parse import unquote
 
-import jwt
 from dictor import dictor
 from django import get_version
 from django.conf import settings
 from django.contrib.auth import get_user_model, login, logout
 from django.contrib.auth.decorators import login_required
-from django.contrib.auth.models import Group
 from django.http import HttpRequest, HttpResponseRedirect
 from django.shortcuts import render
 from django.template import TemplateDoesNotExist
@@ -21,10 +18,10 @@ from pkg_resources import parse_version
 
 from .errors import *
 from .exceptions import SAMLAuthError
-from .utils import (get_or_create_user, decode_saml_response, exception_handler,
+from .utils import (create_jwt_token, decode_saml_response, exception_handler,
                     extract_user_identity, get_assertion_url,
-                    get_default_next_url, get_reverse, get_saml_client,
-                    run_hook)
+                    get_default_next_url, get_or_create_user, get_reverse,
+                    get_saml_client, run_hook)
 
 
 @login_required
@@ -83,16 +80,8 @@ def acs(request: HttpRequest):
 
     use_jwt = dictor(settings, "SAML2_AUTH.USE_JWT", default=False)
     if use_jwt and target_user.is_active:
-        # We use JWT auth to send token to frontend
-        jwt_secret = dictor(settings, "SAML2_AUTH.JWT_SECRET")
-        jwt_algorithm = dictor(settings, "SAML2_AUTH.JWT_ALGORITHM")
-        jwt_expiration = dictor(settings, "SAML2_AUTH.JWT_EXP", default=60)  # default: 1 minute
-        payload = {
-            "email": target_user.email,
-            "exp": (datetime.utcnow() +
-                    timedelta(seconds=jwt_expiration)).timestamp()
-        }
-        jwt_token = jwt.encode(payload, jwt_secret, algorithm=jwt_algorithm)
+        jwt_token = create_jwt_token(target_user)
+        # Use JWT auth to send token to frontend
         query = f"?token={jwt_token}"
 
         frontend_url = dictor(settings, "SAML2_AUTH.FRONTEND_URL", default=next_url)
