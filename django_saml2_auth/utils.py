@@ -355,6 +355,17 @@ def decode_saml_response(
 
 
 def extract_user_identity(user_identity: Dict[str, Any]) -> Dict[str, Any]:
+    """Extract user information from SAML user identity object
+
+    Args:
+        user_identity (Dict[str, Any]): SAML user identity object (dict)
+
+    Raises:
+        SAMLAuthError: No token specified.
+
+    Returns:
+        Dict[str, Any]: Cleaned user information plus user_identity for backwards compatibility
+    """
     email_field = dictor(settings, "ATTRIBUTES_MAP.email", default="user.email")
     username_field = dictor(settings, "ATTRIBUTES_MAP.username", default="user.username")
     firstname_field = dictor(settings, "ATTRIBUTES_MAP.first_name", default="user.first_name")
