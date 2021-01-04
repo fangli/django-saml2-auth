@@ -69,19 +69,19 @@ def acs(request: HttpRequest):
 
     is_new_user, target_user = get_or_create_user(user)
 
-    before_login_trigger = dictor(settings, "SAML2_AUTH.TRIGGER.BEFORE_LOGIN")
+    before_login_trigger = dictor(settings.SAML2_AUTH, "TRIGGER.BEFORE_LOGIN")
     if before_login_trigger:
         run_hook(before_login_trigger, user)
 
     request.session.flush()
 
-    use_jwt = dictor(settings, "SAML2_AUTH.USE_JWT", default=False)
+    use_jwt = dictor(settings.SAML2_AUTH, "USE_JWT", default=False)
     if use_jwt and target_user.is_active:
         jwt_token = create_jwt_token(target_user)
         # Use JWT auth to send token to frontend
         query = f"?token={jwt_token}"
 
-        frontend_url = dictor(settings, "SAML2_AUTH.FRONTEND_URL", default=next_url)
+        frontend_url = dictor(settings.SAML2_AUTH, "FRONTEND_URL", default=next_url)
 
         return HttpResponseRedirect(frontend_url + query)
 
@@ -89,7 +89,7 @@ def acs(request: HttpRequest):
         model_backend = "django.contrib.auth.backends.ModelBackend"
         login(request, target_user, model_backend)
 
-        after_login_trigger = dictor(settings, "SAML2_AUTH.TRIGGER.AFTER_LOGIN")
+        after_login_trigger = dictor(settings.SAML2_AUTH, "TRIGGER.AFTER_LOGIN")
         if after_login_trigger:
             run_hook(after_login_trigger, request.session, user)
     else:
@@ -121,7 +121,7 @@ def signin(request: HttpRequest):
         next_url = request.GET.get("next") or get_default_next_url()
 
     # Only permit signin requests where the next_url is a safe URL
-    allowed_hosts = set(dictor(settings, "SAML2_AUTH.ALLOWED_REDIRECT_HOSTS", default=[]))
+    allowed_hosts = set(dictor(settings.SAML2_AUTH, "ALLOWED_REDIRECT_HOSTS", default=[]))
     if parse_version(get_version()) >= parse_version("2.0"):
         url_ok = is_safe_url(next_url, allowed_hosts)
     else:

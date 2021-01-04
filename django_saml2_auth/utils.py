@@ -103,10 +103,10 @@ def create_new_user(email: str, firstname: str, lastname: str) -> Type[Model]:
     """
     user_model = get_user_model()
 
-    is_active = dictor(settings, "SAML2_AUTH.NEW_USER_PROFILE.ACTIVE_STATUS", default=True)
-    is_staff = dictor(settings, "SAML2_AUTH.NEW_USER_PROFILE.STAFF_STATUS", default=False)
-    is_superuser = dictor(settings, "SAML2_AUTH.NEW_USER_PROFILE.SUPERUSER_STATUS", default=False)
-    user_groups = dictor(settings, "SAML2_AUTH.NEW_USER_PROFILE.USER_GROUPS", default=[])
+    is_active = dictor(settings.SAML2_AUTH, "NEW_USER_PROFILE.ACTIVE_STATUS", default=True)
+    is_staff = dictor(settings.SAML2_AUTH, "NEW_USER_PROFILE.STAFF_STATUS", default=False)
+    is_superuser = dictor(settings.SAML2_AUTH, "NEW_USER_PROFILE.SUPERUSER_STATUS", default=False)
+    user_groups = dictor(settings.SAML2_AUTH, "NEW_USER_PROFILE.USER_GROUPS", default=[])
 
     try:
         user = user_model.objects.create_user(
@@ -151,7 +151,7 @@ def get_assertion_url(request: HttpRequest) -> str:
     Returns:
         str: Either protocol://host or ASSERTION_URL
     """
-    assertion_url = dictor(settings, "SAML2_AUTH.ASSERTION_URL")
+    assertion_url = dictor(settings.SAML2_AUTH, "ASSERTION_URL")
     if assertion_url:
         return assertion_url
 
@@ -167,7 +167,7 @@ def get_default_next_url() -> Optional[str]:
     Returns:
         Optional[str]: Returns default next url for redirection or admin index
     """
-    default_next_url = dictor(settings, "SAML2_AUTH.DEFAULT_NEXT_URL")
+    default_next_url = dictor(settings.SAML2_AUTH, "DEFAULT_NEXT_URL")
     if default_next_url:
         return default_next_url
 
@@ -210,26 +210,26 @@ def get_metadata() -> Mapping[str, Any]:
     Returns:
         Mapping[str, Any]: Returns a SAML metadata object as dictionary
     """
-    get_metadata_trigger = dictor(settings, "SAML2_AUTH.TRIGGER.GET_METADATA_AUTO_CONF_URLS")
+    get_metadata_trigger = dictor(settings.SAML2_AUTH, "TRIGGER.GET_METADATA_AUTO_CONF_URLS")
     if get_metadata_trigger:
         metadata_urls = run_hook(get_metadata_trigger)
         return {"remote": metadata_urls}
 
-    metadata_local_file_path = dictor(settings, "SAML2_AUTH.METADATA_LOCAL_FILE_PATH")
+    metadata_local_file_path = dictor(settings.SAML2_AUTH, "METADATA_LOCAL_FILE_PATH")
     if metadata_local_file_path:
         return {"local": [metadata_local_file_path]}
     else:
-        single_metadata_url = dictor(settings, "SAML2_AUTH.METADATA_AUTO_CONF_URL")
+        single_metadata_url = dictor(settings.SAML2_AUTH, "METADATA_AUTO_CONF_URL")
         return {"remote": [{"url": single_metadata_url}]}
 
 
-def get_saml_client(domain: str, acs: Callable[...]) -> Optional[Saml2Client]:
+def get_saml_client(domain: str, acs: Callable[..., HttpResponse]) -> Optional[Saml2Client]:
     """Create a new Saml2Config object with the given config and return an initialized Saml2Client
     using the config object. The settings are read from django settings key: SAML2_AUTH.
 
     Args:
         domain (str): Domain name to get SAML config for
-        acs (Callable[...]): The acs endpoint
+        acs (Callable[..., HttpResponse]): The acs endpoint
 
     Raises:
         SAMLAuthError: Re-raise any exception raised by Saml2Config or Saml2Client
@@ -243,7 +243,7 @@ def get_saml_client(domain: str, acs: Callable[...]) -> Optional[Saml2Client]:
     saml_settings = {
         "metadata": metadata,
         "allow_unknown_attributes": True,
-        "debug": dictor(settings, "SAML2_AUTH.DEBUG", default=False),
+        "debug": dictor(settings.SAML2_AUTH, "DEBUG", default=False),
         "service": {
             "sp": {
                 "endpoints": {
@@ -263,11 +263,11 @@ def get_saml_client(domain: str, acs: Callable[...]) -> Optional[Saml2Client]:
         },
     }
 
-    entity_id = dictor(settings, "SAML2_AUTH.ENTITY_ID")
+    entity_id = dictor(settings.SAML2_AUTH, "ENTITY_ID")
     if entity_id:
         saml_settings["entityid"] = entity_id
 
-    name_id_format = dictor(settings, "SAML2_AUTH.NAME_ID_FORMAT")
+    name_id_format = dictor(settings.SAML2_AUTH, "NAME_ID_FORMAT")
     if name_id_format:
         saml_settings["service"]["sp"]["name_id_format"] = name_id_format
 
@@ -287,14 +287,14 @@ def get_saml_client(domain: str, acs: Callable[...]) -> Optional[Saml2Client]:
 
 def decode_saml_response(
         request: HttpRequest,
-        acs: Callable[...]) -> Union[HttpResponseRedirect, Optional[AuthnResponse]]:
+        acs: Callable[..., HttpResponse]) -> Union[HttpResponseRedirect, Optional[AuthnResponse]]:
     """Given a request, the authentication response inside the SAML response body is parsed,
     decoded and returned. If there are any issues parsing the request, the identity or the issuer,
     an exception is raised.
 
     Args:
         request (HttpRequest): Django request object from identity provider (IdP)
-        acs (Callable[...]): The acs endpoint
+        acs (Callable[..., HttpResponse]): The acs endpoint
 
     Raises:
         SAMLAuthError: There was no response from SAML client.
@@ -410,7 +410,7 @@ def get_or_create_user(user: Dict[str, Any]) -> Tuple[bool, Type[Model]]:
     created = False
     user_id = user["email"] if user_model.USERNAME_FIELD == "email" else user["user_name"]
     # Should email be case-sensitive or not. Default is False (case-insensitive).
-    login_case_sensitive = dictor(settings, "SAML2_AUTH.LOGIN_CASE_SENSITIVE", default=False)
+    login_case_sensitive = dictor(settings.SAML2_AUTH, "LOGIN_CASE_SENSITIVE", default=False)
     id_field = (
         user_model.USERNAME_FIELD
         if login_case_sensitive
@@ -419,11 +419,11 @@ def get_or_create_user(user: Dict[str, Any]) -> Tuple[bool, Type[Model]]:
     try:
         target_user = user_model.objects.get(**{id_field: user_id})
     except user_model.DoesNotExist:
-        should_create_new_user = dictor(settings, "SAML2_AUTH.CREATE_USER", default=True)
+        should_create_new_user = dictor(settings.SAML2_AUTH, "CREATE_USER", default=True)
         if should_create_new_user:
             target_user = create_new_user(user["email"], user["first_name"], user["last_name"])
 
-            create_user_trigger = dictor(settings, "SAML2_AUTH.TRIGGER.CREATE_USER")
+            create_user_trigger = dictor(settings.SAML2_AUTH, "TRIGGER.CREATE_USER")
             if create_user_trigger:
                 run_hook(create_user_trigger, user)
 
@@ -438,8 +438,8 @@ def get_or_create_user(user: Dict[str, Any]) -> Tuple[bool, Type[Model]]:
 
     # Optionally update this user's group assignments by updating group memberships from SAML groups
     # to Django equivalents
-    group_attribute = dictor(settings, "SAML2_AUTH.ATTRIBUTES_MAP.groups")
-    group_map = dictor(settings, "SAML2_AUTH.GROUPS_MAP")
+    group_attribute = dictor(settings.SAML2_AUTH, "ATTRIBUTES_MAP.groups")
+    group_map = dictor(settings.SAML2_AUTH, "GROUPS_MAP")
 
     if group_attribute and group_attribute in user["user_identity"]:
         groups = []
@@ -473,9 +473,9 @@ def create_jwt_token(target_user: Type[Model]) -> str:
     Returns:
         str: JWT token
     """
-    jwt_secret = dictor(settings, "SAML2_AUTH.JWT_SECRET")
-    jwt_algorithm = dictor(settings, "SAML2_AUTH.JWT_ALGORITHM")
-    jwt_expiration = dictor(settings, "SAML2_AUTH.JWT_EXP", default=60)  # default: 1 minute
+    jwt_secret = dictor(settings.SAML2_AUTH, "JWT_SECRET")
+    jwt_algorithm = dictor(settings.SAML2_AUTH, "JWT_ALGORITHM")
+    jwt_expiration = dictor(settings.SAML2_AUTH, "JWT_EXP", default=60)  # default: 1 minute
     payload = {
         "email": target_user.email,
         "exp": (datetime.utcnow() +
@@ -485,14 +485,14 @@ def create_jwt_token(target_user: Type[Model]) -> str:
     return jwt_token
 
 
-def exception_handler(function: Callable[...]) -> Callable[...]:
+def exception_handler(function: Callable[..., HttpResponse]) -> Callable[..., HttpResponse]:
     """This decorator can be used by view function to handle exceptions
 
     Args:
-        function (Callable[...]): View function to decorate
+        function (Callable[..., HttpResponse]): View function to decorate
 
     Returns:
-        Callable[...]: Decorated view function with exception handling
+        Callable[..., HttpResponse]: Decorated view function with exception handling
     """
     def handle_exception(exc: Exception, request: HttpRequest) -> HttpResponse:
         """Render page with exception details
@@ -504,7 +504,11 @@ def exception_handler(function: Callable[...]) -> Callable[...]:
         Returns:
             HttpResponse: Rendered error page with details
         """
-        return render(request, 'error.html', context=exc.extra, status=exc.extra["status_code"])
+        # TODO: Log error details
+        return render(request,
+                      "django_saml2_auth/error.html",
+                      context=exc.extra,
+                      status=exc.extra["status_code"])
 
     @wraps(function)
     def wrapper(request: HttpRequest) -> HttpResponse:
