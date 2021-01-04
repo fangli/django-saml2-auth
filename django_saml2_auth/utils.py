@@ -253,7 +253,7 @@ def get_saml_client(domain: str, acs: Callable[...]) -> Optional[Saml2Client]:
                     ],
                 },
                 "allow_unsolicited": True,
-                "authn_requests_signed": False,
+                "authn_requests_signed": True,
                 "logout_requests_signed": True,
                 "want_assertions_signed": dictor(
                     settings, "SAML2_AUTH.WANT_ASSERTIONS_SIGNED", default=True),
