@@ -258,7 +258,7 @@ def get_saml_client(domain: str, acs: Callable[...]) -> Optional[Saml2Client]:
                 "want_assertions_signed": dictor(
                     settings, "SAML2_AUTH.WANT_ASSERTIONS_SIGNED", default=True),
                 "want_response_signed": dictor(
-                    settings, "SAML2_AUTH.WANT_RESPONSE_SIGNED", default=False),
+                    settings, "SAML2_AUTH.WANT_RESPONSE_SIGNED", default=True),
             },
         },
     }
