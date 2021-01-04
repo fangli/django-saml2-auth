@@ -151,7 +151,7 @@ def get_assertion_url(request: HttpRequest) -> str:
     Returns:
         str: Either protocol://host or ASSERTION_URL
     """
-    assertion_url = dictor(settings.SAML2_AUTH, "ASSERTION_URL")
+    assertion_url = settings.SAML2_AUTH.get("ASSERTION_URL")
     if assertion_url:
         return assertion_url
 
@@ -167,7 +167,7 @@ def get_default_next_url() -> Optional[str]:
     Returns:
         Optional[str]: Returns default next url for redirection or admin index
     """
-    default_next_url = dictor(settings.SAML2_AUTH, "DEFAULT_NEXT_URL")
+    default_next_url = settings.SAML2_AUTH.get("DEFAULT_NEXT_URL")
     if default_next_url:
         return default_next_url
 
@@ -215,11 +215,11 @@ def get_metadata() -> Mapping[str, Any]:
         metadata_urls = run_hook(get_metadata_trigger)
         return {"remote": metadata_urls}
 
-    metadata_local_file_path = dictor(settings.SAML2_AUTH, "METADATA_LOCAL_FILE_PATH")
+    metadata_local_file_path = settings.SAML2_AUTH.get("METADATA_LOCAL_FILE_PATH")
     if metadata_local_file_path:
         return {"local": [metadata_local_file_path]}
     else:
-        single_metadata_url = dictor(settings.SAML2_AUTH, "METADATA_AUTO_CONF_URL")
+        single_metadata_url = settings.SAML2_AUTH.get("METADATA_AUTO_CONF_URL")
         return {"remote": [{"url": single_metadata_url}]}
 
 
@@ -243,7 +243,7 @@ def get_saml_client(domain: str, acs: Callable[..., HttpResponse]) -> Optional[S
     saml_settings = {
         "metadata": metadata,
         "allow_unknown_attributes": True,
-        "debug": dictor(settings.SAML2_AUTH, "DEBUG", default=False),
+        "debug": settings.SAML2_AUTH.get("DEBUG", False),
         "service": {
             "sp": {
                 "endpoints": {
@@ -263,11 +263,11 @@ def get_saml_client(domain: str, acs: Callable[..., HttpResponse]) -> Optional[S
         },
     }
 
-    entity_id = dictor(settings.SAML2_AUTH, "ENTITY_ID")
+    entity_id = settings.SAML2_AUTH.get("ENTITY_ID")
     if entity_id:
         saml_settings["entityid"] = entity_id
 
-    name_id_format = dictor(settings.SAML2_AUTH, "NAME_ID_FORMAT")
+    name_id_format = settings.SAML2_AUTH.get("NAME_ID_FORMAT")
     if name_id_format:
         saml_settings["service"]["sp"]["name_id_format"] = name_id_format
 
@@ -410,7 +410,7 @@ def get_or_create_user(user: Dict[str, Any]) -> Tuple[bool, Type[Model]]:
     created = False
     user_id = user["email"] if user_model.USERNAME_FIELD == "email" else user["user_name"]
     # Should email be case-sensitive or not. Default is False (case-insensitive).
-    login_case_sensitive = dictor(settings.SAML2_AUTH, "LOGIN_CASE_SENSITIVE", default=False)
+    login_case_sensitive = settings.SAML2_AUTH.get("LOGIN_CASE_SENSITIVE", False)
     id_field = (
         user_model.USERNAME_FIELD
         if login_case_sensitive
@@ -419,7 +419,7 @@ def get_or_create_user(user: Dict[str, Any]) -> Tuple[bool, Type[Model]]:
     try:
         target_user = user_model.objects.get(**{id_field: user_id})
     except user_model.DoesNotExist:
-        should_create_new_user = dictor(settings.SAML2_AUTH, "CREATE_USER", default=True)
+        should_create_new_user = settings.SAML2_AUTH.get("CREATE_USER", True)
         if should_create_new_user:
             target_user = create_new_user(user["email"], user["first_name"], user["last_name"])
 
@@ -439,7 +439,7 @@ def get_or_create_user(user: Dict[str, Any]) -> Tuple[bool, Type[Model]]:
     # Optionally update this user's group assignments by updating group memberships from SAML groups
     # to Django equivalents
     group_attribute = dictor(settings.SAML2_AUTH, "ATTRIBUTES_MAP.groups")
-    group_map = dictor(settings.SAML2_AUTH, "GROUPS_MAP")
+    group_map = settings.SAML2_AUTH.get("GROUPS_MAP")
 
     if group_attribute and group_attribute in user["user_identity"]:
         groups = []
@@ -473,9 +473,9 @@ def create_jwt_token(target_user: Type[Model]) -> str:
     Returns:
         str: JWT token
     """
-    jwt_secret = dictor(settings.SAML2_AUTH, "JWT_SECRET")
-    jwt_algorithm = dictor(settings.SAML2_AUTH, "JWT_ALGORITHM")
-    jwt_expiration = dictor(settings.SAML2_AUTH, "JWT_EXP", default=60)  # default: 1 minute
+    jwt_secret = settings.SAML2_AUTH.get("JWT_SECRET")
+    jwt_algorithm = settings.SAML2_AUTH.get("JWT_ALGORITHM")
+    jwt_expiration = settings.SAML2_AUTH.get("JWT_EXP", 60)  # default: 1 minute
     payload = {
         "email": target_user.email,
         "exp": (datetime.utcnow() +
