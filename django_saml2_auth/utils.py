@@ -1,3 +1,4 @@
+import logging
 from datetime import datetime, timedelta
 from functools import wraps
 from typing import (Any, Callable, Dict, Iterable, Mapping, Optional, Tuple,
@@ -504,7 +505,9 @@ def exception_handler(function: Callable[..., HttpResponse]) -> Callable[..., Ht
         Returns:
             HttpResponse: Rendered error page with details
         """
-        # TODO: Log error details
+        logger = logging.getLogger(__name__)
+        logger.debug(exc)
+
         return render(request,
                       "django_saml2_auth/error.html",
                       context=exc.extra,
