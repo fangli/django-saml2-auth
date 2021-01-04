@@ -60,8 +60,7 @@ def acs(request: HttpRequest):
         https://wiki.shibboleth.net/confluence/display/CONCEPT/AssertionConsumerService
     """
     authn_response = decode_saml_response(request, acs)
-    user_identity = authn_response.get_identity()
-    user = extract_user_identity(user_identity)
+    user = extract_user_identity(authn_response.get_identity())
 
     next_url = request.session.get("login_next_url") or get_default_next_url()
     # If relayState params is passed, use that else consider the previous "next_url"
