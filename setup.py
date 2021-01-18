@@ -61,7 +61,6 @@ setup(
     packages=find_packages(),
 
     install_requires=['pysaml2>=4.8.0',
-                      'djangorestframework-jwt',
-                      'PyJWT', ],
+                      'PyJWT>=2.0.1', ],
     include_package_data=True,
 )
