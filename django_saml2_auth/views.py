@@ -69,19 +69,17 @@ def acs(request: HttpRequest):
     # If RelayState params is passed, it is a JWT token that identifies the user trying to login
     # via sp_initiated_login endpoint
     relay_state = request.POST.get("RelayState")
-    redirected_user_id = None
-    saml_resp_user_id = get_user_id(user)
     if relay_state:
         redirected_user_id = decode_jwt_token(relay_state)
 
-    # This prevents users from entering an email on the SP, but use a different email on IdP
-    if saml_resp_user_id != redirected_user_id:
-        raise SAMLAuthError("The user identifier doesn't match.", extra={
-            "exc_type": ValueError,
-            "error_code": USER_MISMATCH,
-            "reason": "User identifier mismatch.",
-            "status_code": 403
-        })
+        # This prevents users from entering an email on the SP, but use a different email on IdP
+        if get_user_id(user) != redirected_user_id:
+            raise SAMLAuthError("The user identifier doesn't match.", extra={
+                "exc_type": ValueError,
+                "error_code": USER_MISMATCH,
+                "reason": "User identifier mismatch.",
+                "status_code": 403
+            })
 
     is_new_user, target_user = get_or_create_user(user)
 
