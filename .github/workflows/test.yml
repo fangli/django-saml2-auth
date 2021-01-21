@@ -1,0 +1,21 @@
+name: test
+
+on: push
+
+jobs:
+  test:
+    name: Test django-saml2-auth
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+      - name: Set up Python
+        uses: actions/setup-python@v2
+        with:
+          python-version: "3.7"
+      - name: Install xmlsec1
+        run: sudo apt-get install xmlsec1
+      - name: Install dependencies
+        run: pip install -r requirements_test.txt && pip install -e .
+      - name: Test
+        run: pytest .

@@ -1,0 +1,27 @@
+<md:EntityDescriptor entityID="https://testserver2.com/entity" validUntil="2025-08-30T19:10:29Z"
+    xmlns:md="urn:oasis:names:tc:SAML:2.0:METADATA1"
+    xmlns:saml="urn:oasis:names:tc:SAML:2.0:assertion"
+    xmlns:mdrpi="urn:oasis:names:tc:SAML:METADATA1:rpi"
+    xmlns:mdattr="urn:oasis:names:tc:SAML:METADATA1:attribute"
+    xmlns:ds="http://www.w3.org/2000/09/xmldsig#">
+    <!-- insert ds:Signature element (omitted) -->
+    <md:Extensions>
+    <mdrpi:RegistrationInfo registrationAuthority="https://testserver2.com/"/>
+    <mdrpi:PublicationInfo creationInstant="2025-08-16T19:10:29Z" publisher="https://testserver2.com/"/>
+    <mdattr:EntityAttributes>
+        <saml:Attribute Name="https://testserver2.com/entity-category" NameFormat="urn:oasis:names:tc:SAML:2.0:attrname-format:uri">
+        <saml:AttributeValue>https://testserver2.com/category/self-certified</saml:AttributeValue>
+        </saml:Attribute>
+    </mdattr:EntityAttributes>
+    </md:Extensions>
+    <!-- insert one or more concrete instances of the md:RoleDescriptor abstract type (see below) -->
+    <md:Organization>
+    <md:OrganizationName xml:lang="en">...</md:OrganizationName>
+    <md:OrganizationDisplayName xml:lang="en">...</md:OrganizationDisplayName>
+    <md:OrganizationURL xml:lang="en">https://testserver2.com/</md:OrganizationURL>
+    </md:Organization>
+    <md:ContactPerson contactType="technical">
+    <md:SurName>SAML Technical Support</md:SurName>
+    <md:EmailAddress>mailto:technical-support@example.info</md:EmailAddress>
+    </md:ContactPerson>
+</md:EntityDescriptor>

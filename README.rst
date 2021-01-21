@@ -4,42 +4,27 @@ Django SAML2 Authentication Made Easy
 
 :Original Author: Fang Li
 :Maintainer: Mostafa Moradian
-:Version: Use 1.1.4 for Django <=1.9, 2.x.x for Django >= 1.9, Latest supported django version is 2.2
+:Version: Use 1.1.4 for Django <=1.9, 2.x.x for Django >= 1.9, Latest supported django version is 2.2. Version >=3.0.0 is heavily refactored.
 
-This project aims to provide a dead simple way to integrate SAML2
-Authentication into your Django powered app. Try it now, and get rid of the
-complicated configuration of SAML.
+This project aims to provide a simple way to integrate SAML2 Authentication into your Django-powered app. Try it now, and get rid of the complicated configuration of SAML.
 
-Any SAML2 based SSO (Single Sign-On) identity provider with dynamic metadata
-configuration is supported by this Django plugin, for example Okta.
+Any SAML2 based SSO (Single Sign-On) identity provider (IdP) with dynamic metadata configuration is supported by this Django plugin, for example Okta. The library also supports service provider-initiated SSO.
 
 
 When you raise an issue or PR
 =============================
 
-Please note this library is used in tons of production environment and plays a mission-critical role in most deployment. It supports almost all django versions since 1.1.4. We need to be extremely careful when merging any changes.
+Please note this library is mission-critical and supports almost all django versions since 1.7. We need to be extremely careful when merging any changes.
 
-So most non-security features or enhancements will be REJECTED. please fork your own version or just copy the code as you need. I want to make this module dead simple and reliable. That means when you have it properly configured, you are not likely to get into any troubles in the future.
-
-The supports to new versions of django are still welcome and I'll make best effort to make it latest django compatible.
-
+The support for new versions of django are welcome and I'll make best effort to make it latest django compatible.
 
 
 Donate
 ======
 
-We accept your donations by clicking the awesome |star| instead of any physical transfer.
+We accept donations, but not in the form of money! If you want to support us, make sure to give us a nice, shiny |star|!
 
-.. |star| image:: https://img.shields.io/github/stars/fangli/django-saml2-auth.svg?style=social&label=Star&maxAge=86400
-
-
-
-Dependencies
-============
-
-This plugin is compatible with Django 1.6/1.7/1.8/1.9/1.10/2.1/2.2. The ``pysaml2`` Python
-module is required.
-
+.. |star| image:: https://img.shields.io/github/stars/loadimpact/django-saml2-auth.svg?style=social&label=Star&maxAge=86400
 
 
 Install
@@ -59,45 +44,47 @@ or from source:
     # cd django-saml2-auth
     # python setup.py install
 
-xmlsec is also required by pysaml2:
+``xmlsec`` is also required by ``pysaml2``, so it must be installed:
 
 .. code-block:: bash
 
+    // RPM-based distributions
     # yum install xmlsec1
-    // or
+    // DEB-based distributions
     # apt-get install xmlsec1
-    // Mac
+    // macOS
     # brew install xmlsec1
+
+`Windows binaries <https://www.zlatkovic.com/projects/libxml/index.html>`_ are also available.
 
 
 What does this plugin do?
 =========================
 
-This plugin takes over Django's login page and redirect the user to a SAML2
-SSO authentication service. Once the user is logged in and redirected back,
-the plugin will check if the user is already in the system. If not, the user
-will be created using Django's default UserModel, otherwise the user will be
-redirected to their last visited page.
+This plugin can act as a SAML authentication system for Django that supports IdP and SP-initiated SSO.
 
+- For IdP-initiated SSO, the user should log in to their IdP platform (e.g. Okta), and click on the application that authorizes and redirects the user to the SP (your platform).
+- For SP-initiated SSO, the user should first exist on your platform (either log in using method 1 or else) and then it can be configured to be redirected to the correct application on the IdP platform.
+
+For IdP-initiated SSO, the user will be created if it doesn't exist, but for SP-initiated SSO, the user should exist in your platform for the code to detect and redirect them to the correct application on the IdP platform.
 
 
 How to use?
 ===========
 
-#. Import the views module in your root urls.py
+#. Once you have the library installed or in your ``requirements.txt``, import the views module in your root ``urls.py``:
 
     .. code-block:: python
 
         import django_saml2_auth.views
 
-#. Override the default login page in the root urls.py file, by adding these
-   lines **BEFORE** any ``urlpatterns``:
+#. Override the default login page in the root ``urls.py`` file, by adding these lines **BEFORE** any ``urlpatterns``:
 
     .. code-block:: python
 
         # These are the SAML2 related URLs. You can change "^saml2_auth/" regex to
-        # any path you want, like "^sso_auth/", "^sso_login/", etc. (required)
-        url(r'^saml2_auth/', include('django_saml2_auth.urls')),
+        # any path you want, like "^sso/", "^sso_auth/", "^sso_login/", etc. (required)
+        url(r'^sso/', include('django_saml2_auth.urls')),
 
         # The following line will replace the default user login with SAML2 (optional)
         # If you want to specific the after-login-redirect-URL, use parameter "?next=/the/path/you/want"
@@ -109,7 +96,7 @@ How to use?
         # with this view.
         url(r'^admin/login/$', django_saml2_auth.views.signin),
 
-#. Add 'django_saml2_auth' to INSTALLED_APPS
+#. Add ``'django_saml2_auth'`` to ``INSTALLED_APPS`` in your django ``settings.py``:
 
     .. code-block:: python
 
@@ -118,11 +105,10 @@ How to use?
             'django_saml2_auth',
         ]
 
-#. In settings.py, add the SAML2 related configuration.
+#. In ``settings.py``, add the SAML2 related configuration:
 
-    Please note, the only required setting is **METADATA_AUTO_CONF_URL**.
-    The following block shows all required and optional configuration settings
-    and their default values.
+    Please note, the only required setting is **METADATA_AUTO_CONF_URL** or the existence of a **GET_METADATA_AUTO_CONF_URLS** trigger function.
+    The following block shows all required and optional configuration settings and their default values.
 
     .. code-block:: python
 
@@ -131,13 +117,15 @@ How to use?
             'METADATA_AUTO_CONF_URL': '[The auto(dynamic) metadata configuration URL of SAML2]',
             'METADATA_LOCAL_FILE_PATH': '[The metadata configuration file path]',
 
+            'DEBUG': False,  # Send debug information to log file
+
             # Optional settings below
             'DEFAULT_NEXT_URL': '/admin',  # Custom target redirect URL after the user get logged in. Default to /admin if not set. This setting will be overwritten if you have parameter ?next= specificed in the login URL.
-            'CREATE_USER': 'TRUE', # Create a new Django user when a new user logs in. Defaults to True.
+            'CREATE_USER': 'TRUE',  # Create a new Django user when a new user logs in. Defaults to True.
             'NEW_USER_PROFILE': {
                 'USER_GROUPS': [],  # The default group name when a new user logs in
                 'ACTIVE_STATUS': True,  # The default active status for new users
-                'STAFF_STATUS': True,  # The staff status for new users
+                'STAFF_STATUS': False,  # The staff status for new users
                 'SUPERUSER_STATUS': False,  # The superuser status for new users
             },
             'ATTRIBUTES_MAP': {  # Change Email/UserName/FirstName/LastName to corresponding SAML2 userprofile attributes.
@@ -145,8 +133,8 @@ How to use?
                 'username': 'UserName',
                 'first_name': 'FirstName',
                 'last_name': 'LastName',
-                'groups': 'Groups', # Optional
-                'token': 'Token', # Mandatory
+                'token': 'Token',  # Mandatory
+                'groups': 'Groups',  # Optional
             },
             'GROUPS_MAP': {  # Optionally allow mapping SAML2 Groups to Django Groups
                 'SAML Group Name': 'Django Group Name',
@@ -155,36 +143,38 @@ How to use?
                 'CREATE_USER': 'path.to.your.new.user.hook.method',
                 'BEFORE_LOGIN': 'path.to.your.login.hook.method',
                 'AFTER_LOGIN': 'path.to.your.after.login.hook.method',
+                # This can override the METADATA_AUTO_CONF_URL to enumerate all existing metadata autoconf URLs
                 'GET_METADATA_AUTO_CONF_URLS': 'path.to.your.after.metadata.conf.hook.method',
             },
-            'ASSERTION_URL': 'https://mysite.com', # Custom URL to validate incoming SAML requests against
-            'ENTITY_ID': 'https://mysite.com/saml2_auth/acs/', # Populates the Issuer element in authn request
-            'NAME_ID_FORMAT': FormatString, # Sets the Format property of authn NameIDPolicy element
-            'USE_JWT': False, # Set this to True if you are running a Single Page Application (SPA) with Django Rest Framework (DRF), and are using JWT authentication to authorize client users
-            'JWT_SECRET': 'your.jwt.secret', # JWT secret to sign the message with
-            'JWT_ALGORITHM': 'HS256', # JWT algorithm to sign the message with
-            'JWT_EXP': 60, # JWT expiry time in seconds
-            'FRONTEND_URL': 'https://myfrontendclient.com', # Redirect URL for the client if you are using JWT auth with DRF. See explanation below
-            'LOGIN_CASE_SENSITIVE': True, # whether of not to get the user in case_sentive mode
-            'WANT_ASSERTIONS_SIGNED': True, # Require each assertion to be signed
-            'WANT_RESPONSE_SIGNED': False, # Require response to be signed
+            'ASSERTION_URL': 'https://mysite.com',  # Custom URL to validate incoming SAML requests against
+            'ENTITY_ID': 'https://mysite.com/saml2_auth/acs/',  # Populates the Issuer element in authn request
+            'NAME_ID_FORMAT': FormatString,  # Sets the Format property of authn NameIDPolicy element, e.g. 'user.email'
+            'USE_JWT': True,  # Set this to True if you are running a Single Page Application (SPA) with Django Rest Framework (DRF), and are using JWT authentication to authorize client users
+            'JWT_SECRET': 'your.jwt.secret',  # JWT secret to sign the message with
+            'JWT_ALGORITHM': 'HS256',  # JWT algorithm to sign the message with
+            'JWT_EXP': 60,  # JWT expiry time in seconds
+            'FRONTEND_URL': 'https://myfrontendclient.com',  # Redirect URL for the client if you are using JWT auth with DRF. See explanation below
+            'LOGIN_CASE_SENSITIVE': True,  # whether of not to get the user in case_sentive mode
+            'WANT_ASSERTIONS_SIGNED': True,  # Require each assertion to be signed
+            'WANT_RESPONSE_SIGNED': False,  # Require response to be signed
             'ALLOWED_REDIRECT_HOSTS': ["https://myfrontendclient.com"] # Allowed hosts to redirect to using the ?next parameter
         }
 
-#. In your SAML2 SSO identity provider, set the Single-sign-on URL and Audience
-   URI(SP Entity ID) to http://your-domain/saml2_auth/acs/
+#. In your SAML2 SSO identity provider, set the Single-sign-on URL and Audience URI (SP Entity ID) to http://your-domain/saml2_auth/acs/
 
 
 Explanation
 -----------
 
-**GET_METADATA_AUTO_CONF_URLS** hook is function that returns list of metadata autoconf URLs.
+**GET_METADATA_AUTO_CONF_URLS** hook is function that returns list of metadata autoconf URLs
 
 **METADATA_AUTO_CONF_URL** Auto SAML2 metadata configuration URL
 
 **METADATA_LOCAL_FILE_PATH** SAML2 metadata configuration file path
 
-**CREATE_USER** Determines if a new Django user should be created for new users.
+**DEBUG** Send debug information to log file (defaults to False)
+
+**CREATE_USER** Determines if a new Django user should be created for new users
 
 **NEW_USER_PROFILE** Default settings for newly created users
 
@@ -232,20 +222,14 @@ With these params your client can now authenticate with server resources.
 Customize
 =========
 
-The default permission ``denied`` page and user ``welcome`` page can be
-overridden.
+The default permission ``denied``, ``error`` and user ``welcome`` page can be overridden.
 
-To override these pages put a template named 'django_saml2_auth/welcome.html'
-or 'django_saml2_auth/denied.html' in your project's template folder.
+To override these pages put a template named 'django_saml2_auth/error.html', 'django_saml2_auth/welcome.html' or 'django_saml2_auth/denied.html' in your project's template folder.
 
-If a 'django_saml2_auth/welcome.html' template exists, that page will be shown
-to the user upon login instead of the user being redirected to the previous
-visited page. This welcome page can contain some first-visit notes and welcome
-words. The `Django user object <https://docs.djangoproject.com/en/1.9/ref/contrib/auth/#django.contrib.auth.models.User>`_
-is available within the template as the ``user`` template variable.
+If a 'django_saml2_auth/welcome.html' template exists, that page will be shown to the user upon login instead of the user being redirected to the previous visited page. This welcome page can contain some first-visit notes and welcome
+words. The `Django user object <https://docs.djangoproject.com/en/1.9/ref/contrib/auth/#django.contrib.auth.models.User>`_ is available within the template as the ``user`` template variable.
 
-To enable a logout page, add the following lines to urls.py, before any
-``urlpatterns``:
+To enable a logout page, add the following lines to ``urls.py``, before any ``urlpatterns``:
 
 .. code-block:: python
 
@@ -266,19 +250,13 @@ defaults listed in the ``settings.py`` ``ATTRIBUTES_MAP``, update them in
 For Okta Users
 ==============
 
-I created this plugin originally for Okta.
-
-The ``METADATA_AUTO_CONF_URL`` needed in ``settings.py`` can be found in the Okta
-Web UI by navigating to the SAML2 app's ``Sign On`` tab. In the ``Settings`` box,
-you should see::
+I created this plugin originally for Okta. The ``METADATA_AUTO_CONF_URL`` needed in ``settings.py`` can be found in the Okta Web UI by navigating to the SAML2 app's ``Sign On`` tab. In the ``Settings`` box, you should see::
 
     Identity Provider metadata is available if this application supports dynamic configuration.
 
 The ``Identity Provider metadata`` link is the ``METADATA_AUTO_CONF_URL``.
 
-More information can be found in the `Okta Developer Documentation`_.
-
-..  _`Okta developer documentation`: https://developer.okta.com/docs/guides/saml-application-setup/overview/
+More information can be found in the `Okta Developer Documentation <https://developer.okta.com/docs/guides/saml-application-setup/overview/>`_.
 
 
 How to Contribute
@@ -289,12 +267,14 @@ How to Contribute
 #. Write a test which shows that the bug was fixed or that the feature works as expected.
 #. Send a pull request and bug the maintainer until it gets merged and published. :) Make sure to add yourself to AUTHORS_.
 
-.. _`the repository`: http://github.com/fangli/django-saml2-auth
-.. _AUTHORS: https://github.com/fangli/django-saml2-auth/blob/master/AUTHORS.rst
+.. _`the repository`: http://github.com/loadimpact/django-saml2-auth
+.. _AUTHORS: https://github.com/loadimpact/django-saml2-auth/blob/master/AUTHORS.rst
 
 
 Release Log
 ===========
+
+3.0.0 : Extensive refactoring of the library (check the commit logs) - incompatible with previous versions
 
 2.3.0: Merge of PRs plus bugfixes and (manual) testing
 

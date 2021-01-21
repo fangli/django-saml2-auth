@@ -1,0 +1,18 @@
+{% load i18n %}
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <title>{% trans "Permission Denied" %}</title>
+  </head>
+  <body>
+    <h2>{% trans "Sorry, you are not allowed to access this app" %}</h2>
+    <hr />
+    <p>
+      {% trans "To report a problem with your access please contact your system administrator" %}
+    </p>
+    {% if error_code %}<p>Error code: {{ error_code }}</p>{% endif %}
+    {% if reason %}<p>Reason: {{ reason }}</p>{% endif %}
+  </body>
+</html>
+
