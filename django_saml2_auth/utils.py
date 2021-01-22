@@ -59,6 +59,9 @@ def run_hook(function_path: str,
     try:
         cls = import_string(module_path)
         result = getattr(cls, path[-1])(*args, **kwargs)
+    except SAMLAuthError as exc:
+        # Re-raise the exception
+        raise exc
     except (ImportError, AttributeError) as exc:
         raise SAMLAuthError(str(exc), extra={
             "exc": exc,
