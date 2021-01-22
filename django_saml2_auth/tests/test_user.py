@@ -47,8 +47,8 @@ def test_create_new_user_success(settings: SettingsWrapper):
 
 @pytest.mark.django_db
 def test_create_new_user_no_group_error(settings: SettingsWrapper):
-    """Test create_new_user function to verify if it creates the user, but fails to the user to the
-    respective group.
+    """Test create_new_user function to verify if it creates the user, but fails to join the user
+    to the respective group.
 
     Args:
         settings (SettingsWrapper): Fixture for django settings
