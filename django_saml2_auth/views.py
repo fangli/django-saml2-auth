@@ -133,11 +133,9 @@ def sp_initiated_login(request: HttpRequest) -> HttpResponseRedirect:
             saml_client = get_saml_client(get_assertion_url(request), acs, user_id)
             jwt_token = create_jwt_token(user_id)
             _, info = saml_client.prepare_for_authenticate(sign=False, relay_state=jwt_token)
-            redirect_url = ""
-            for header in info["headers"]:
-                if header[0] == "Location":
-                    redirect_url = header[1]
-                    break
+            redirect_url = dict(info["headers"]).get("Location", "")
+            if not redirect_url:
+                return HttpResponseRedirect(get_reverse([denied, "denied", "django_saml2_auth:denied"]))
             return HttpResponseRedirect(redirect_url)
     else:
         raise SAMLAuthError("Request method is not supported.", extra={
