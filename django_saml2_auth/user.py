@@ -161,7 +161,7 @@ def get_user_id(user: Dict[str, str]) -> Optional[str]:
     if isinstance(user, str):
         user_id = user
 
-    return user_id
+    return user_id.lower()
 
 
 def get_user(user: Union[str, Dict[str, str]]) -> Type[Model]:
