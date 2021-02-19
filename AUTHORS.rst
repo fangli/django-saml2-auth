@@ -2,10 +2,12 @@ This project is written and maintained by Fang Li and
 various contributors:
 
 
-Django Saml2 Auth
+Django Saml2 Auth Lotterywest
 -----------------
 
-- Fang Li
+- Fang Li (Original Author of source repository)
+- Ignacio Cabeza
+- Frinze Erin Lapuz
 
 
 

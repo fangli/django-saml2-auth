@@ -2,17 +2,17 @@
 Django SAML2 Authentication Made Easy
 =====================================
 
-:Author: Fang Li
+:Author: Lotterywest GoRillas Team
 :Version: Use 1.1.4 for Django <=1.9, 2.x.x for Django >= 1.9, Latest supported django version is 2.1
 
-.. image:: https://img.shields.io/pypi/pyversions/django-saml2-auth.svg
-    :target: https://pypi.python.org/pypi/django-saml2-auth
+.. image:: https://img.shields.io/pypi/pyversions/django-saml2-auth-lw.svg
+    :target: https://pypi.python.org/pypi/django-saml2-auth-lw
 
-.. image:: https://img.shields.io/pypi/v/django-saml2-auth.svg
-    :target: https://pypi.python.org/pypi/django-saml2-auth
+.. image:: https://img.shields.io/pypi/v/django-saml2-auth-lw.svg
+    :target: https://pypi.python.org/pypi/django-saml2-auth-lw
 
-.. image:: https://img.shields.io/pypi/dm/django-saml2-auth.svg
-        :target: https://pypi.python.org/pypi/django-saml2-auth
+.. image:: https://img.shields.io/pypi/dm/django-saml2-auth-lw.svg
+        :target: https://pypi.python.org/pypi/django-saml2-auth-lw
 
 This project aims to provide a dead simple way to integrate SAML2
 Authentication into your Django powered app. Try it now, and get rid of the
@@ -30,16 +30,6 @@ Please note this library is used in tons of production environment and plays a m
 So most non-security features or enhancements will be REJECTED. please fork your own version or just copy the code as you need. I want to make this module dead simple and reliable. That means when you have it properly configured, you are not likely to get into any troubles in the future.
 
 The supports to new versions of django are still welcome and I'll make best effort to make it latest django compatible.
-
-
-
-Donate
-======
-
-We accept your donations by clicking the awesome |star| instead of any physical transfer.
-
-.. |star| image:: https://img.shields.io/github/stars/fangli/django-saml2-auth.svg?style=social&label=Star&maxAge=86400
-
 
 
 Dependencies
@@ -63,8 +53,8 @@ or from source:
 
 .. code-block:: bash
 
-    # git clone https://github.com/fangli/django-saml2-auth
-    # cd django-saml2-auth
+    # git clone Lotterywest GoRillas Team
+    # cd django-saml2-auth-lw
     # python setup.py install
 
 xmlsec is also required by pysaml2:
@@ -197,7 +187,7 @@ This method will be called before the user is logged in and after user
 attributes are returned by the SAML2 identity provider. This method should accept ONE parameter of user dict.
 
 **ASSERTION_URL** A URL to validate incoming SAML responses against. By default,
-django-saml2-auth will validate the SAML response's Service Provider address
+django-saml2-auth-lw will validate the SAML response's Service Provider address
 against the actual HTTP request's host and scheme. If this value is set, it
 will validate against ASSERTION_URL instead - perfect for when django running
 behind a reverse proxy.
@@ -269,12 +259,13 @@ How to Contribute
 #. Write a test which shows that the bug was fixed or that the feature works as expected.
 #. Send a pull request and bug the maintainer until it gets merged and published. :) Make sure to add yourself to AUTHORS_.
 
-.. _`the repository`: http://github.com/fangli/django-saml2-auth
-.. _AUTHORS: https://github.com/fangli/django-saml2-auth/blob/master/AUTHORS.rst
+.. _`the repository`: https://github.com/Lotterywest/django-saml2-auth-lw
+.. _AUTHORS: hhttps://github.com/Lotterywest/django-saml2-auth-lw/blob/master/AUTHORS.rst
 
 
 Release Log
 ===========
+2.2.2: Change package djangorestframework-jwt to drf-jwt
 
 2.2.1: Fixed is_safe_url parameters issue for django 2.1
 
