@@ -21,23 +21,11 @@ complicated configuration of SAML.
 Any SAML2 based SSO(Single-Sign-On) identity provider with dynamic metadata
 configuration is supported by this Django plugin, for example Okta.
 
-
-When you raise an issue or PR
-=============================
-
-Please note this library is used in tons of production environment and plays a mission-critical role in most deployment. It supports almost all django versions since 1.1.4. We need to be extremely careful when merging any changes.
-
-So most non-security features or enhancements will be REJECTED. please fork your own version or just copy the code as you need. I want to make this module dead simple and reliable. That means when you have it properly configured, you are not likely to get into any troubles in the future.
-
-The supports to new versions of django are still welcome and I'll make best effort to make it latest django compatible.
-
-
 Dependencies
 ============
 
 This plugin is compatible with Django 1.6/1.7/1.8/1.9/1.10. The `pysaml2` Python
 module is required.
-
 
 
 Install
