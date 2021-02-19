@@ -1,6 +1,7 @@
 # Django SAML2 Authentication Made Easy
 
 By Lotterywest GoRillas Team
+
 Version: Use 1.1.4 for Django <=1.9, 2.x.x for Django >= 1.9, Latest supported django version is 2.1
 
 This project aims to provide a dead simple way to integrate SAML2
@@ -57,37 +58,37 @@ redirected to their last visited page.
 
 1. Import the views module in your root urls.py
 
-    .. code-block:: python
-
-        import django_saml2_auth.views
+    ```python
+    import django_saml2_auth.views
+    ```
 
 2. Override the default login page in the root urls.py file, by adding these
    lines **BEFORE** any `urlpatterns`:
 
-    .. code-block:: python
+    ```python
+    # These are the SAML2 related URLs. You can change "^saml2_auth/" regex to
+    # any path you want, like "^sso_auth/", "^sso_login/", etc. (required)
+    url(r'^saml2_auth/', include('django_saml2_auth.urls')),
 
-        # These are the SAML2 related URLs. You can change "^saml2_auth/" regex to
-        # any path you want, like "^sso_auth/", "^sso_login/", etc. (required)
-        url(r'^saml2_auth/', include('django_saml2_auth.urls')),
+    # The following line will replace the default user login with SAML2 (optional)
+    # If you want to specific the after-login-redirect-URL, use parameter "?next=/the/path/you/want"
+    # with this view.
+    url(r'^accounts/login/$', django_saml2_auth.views.signin),
 
-        # The following line will replace the default user login with SAML2 (optional)
-        # If you want to specific the after-login-redirect-URL, use parameter "?next=/the/path/you/want"
-        # with this view.
-        url(r'^accounts/login/$', django_saml2_auth.views.signin),
-
-        # The following line will replace the admin login with SAML2 (optional)
-        # If you want to specific the after-login-redirect-URL, use parameter "?next=/the/path/you/want"
-        # with this view.
-        url(r'^admin/login/$', django_saml2_auth.views.signin),
+    # The following line will replace the admin login with SAML2 (optional)
+    # If you want to specific the after-login-redirect-URL, use parameter "?next=/the/path/you/want"
+    # with this view.
+    url(r'^admin/login/$', django_saml2_auth.views.signin),
+    ```
 
 3. Add 'django_saml2_auth' to INSTALLED_APPS
 
-    .. code-block:: python
-
-        INSTALLED_APPS = [
-            '...',
-            'django_saml2_auth',
-        ]
+    ```python
+    INSTALLED_APPS = [
+        '...',
+        'django_saml2_auth',
+    ]
+    ```
 
 4. In settings.py, add the SAML2 related configuration.
 
@@ -95,38 +96,38 @@ redirected to their last visited page.
     The following block shows all required and optional configuration settings
     and their default values.
 
-    .. code-block:: python
+    ```python
+    SAML2_AUTH = {
+        # Metadata is required, choose either remote url or local file path
+        'METADATA_AUTO_CONF_URL': '[The auto(dynamic) metadata configuration URL of SAML2]',
+        'METADATA_LOCAL_FILE_PATH': '[The metadata configuration file path]',
 
-        SAML2_AUTH = {
-            # Metadata is required, choose either remote url or local file path
-            'METADATA_AUTO_CONF_URL': '[The auto(dynamic) metadata configuration URL of SAML2]',
-            'METADATA_LOCAL_FILE_PATH': '[The metadata configuration file path]',
-
-            # Optional settings below
-            'DEFAULT_NEXT_URL': '/admin',  # Custom target redirect URL after the user get logged in. Default to /admin if not set. This setting will be overwritten if you have parameter ?next= specificed in the login URL.
-            'CREATE_USER': 'TRUE', # Create a new Django user when a new user logs in. Defaults to True.
-            'NEW_USER_PROFILE': {
-                'USER_GROUPS': [],  # The default group name when a new user logs in
-                'ACTIVE_STATUS': True,  # The default active status for new users
-                'STAFF_STATUS': True,  # The staff status for new users
-                'SUPERUSER_STATUS': False,  # The superuser status for new users
-            },
-            'ATTRIBUTES_MAP': {  # Change Email/UserName/FirstName/LastName to corresponding SAML2 userprofile attributes.
-                'email': 'Email',
-                'username': 'UserName',
-                'first_name': 'FirstName',
-                'last_name': 'LastName',
-            },
-            'TRIGGER': {
-                'CREATE_USER': 'path.to.your.new.user.hook.method',
-                'BEFORE_LOGIN': 'path.to.your.login.hook.method',
-            },
-            'ASSERTION_URL': 'https://mysite.com', # Custom URL to validate incoming SAML requests against
-            'ENTITY_ID': 'https://mysite.com/saml2_auth/acs/', # Populates the Issuer element in authn request
-            'NAME_ID_FORMAT': FormatString, # Sets the Format property of authn NameIDPolicy element
-            'USE_JWT': False, # Set this to True if you are running a Single Page Application (SPA) with Django Rest Framework (DRF), and are using JWT authentication to authorize client users
-            'FRONTEND_URL': 'https://myfrontendclient.com', # Redirect URL for the client if you are using JWT auth with DRF. See explanation below
-        }
+        # Optional settings below
+        'DEFAULT_NEXT_URL': '/admin',  # Custom target redirect URL after the user get logged in. Default to /admin if not set. This setting will be overwritten if you have parameter ?next= specificed in the login URL.
+        'CREATE_USER': 'TRUE', # Create a new Django user when a new user logs in. Defaults to True.
+        'NEW_USER_PROFILE': {
+            'USER_GROUPS': [],  # The default group name when a new user logs in
+            'ACTIVE_STATUS': True,  # The default active status for new users
+            'STAFF_STATUS': True,  # The staff status for new users
+            'SUPERUSER_STATUS': False,  # The superuser status for new users
+        },
+        'ATTRIBUTES_MAP': {  # Change Email/UserName/FirstName/LastName to corresponding SAML2 userprofile attributes.
+            'email': 'Email',
+            'username': 'UserName',
+            'first_name': 'FirstName',
+            'last_name': 'LastName',
+        },
+        'TRIGGER': {
+            'CREATE_USER': 'path.to.your.new.user.hook.method',
+            'BEFORE_LOGIN': 'path.to.your.login.hook.method',
+        },
+        'ASSERTION_URL': 'https://mysite.com', # Custom URL to validate incoming SAML requests against
+        'ENTITY_ID': 'https://mysite.com/saml2_auth/acs/', # Populates the Issuer element in authn request
+        'NAME_ID_FORMAT': FormatString, # Sets the Format property of authn NameIDPolicy element
+        'USE_JWT': False, # Set this to True if you are running a Single Page Application (SPA) with Django Rest Framework (DRF), and are using JWT authentication to authorize client users
+        'FRONTEND_URL': 'https://myfrontendclient.com', # Redirect URL for the client if you are using JWT auth with DRF. See explanation below
+    }
+    ```
 
 5. In your SAML2 SSO identity provider, set the Single-sign-on URL and Audience
    URI(SP Entity ID) to http://your-domain/saml2_auth/acs/
