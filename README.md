@@ -1,18 +1,7 @@
-=====================================
-Django SAML2 Authentication Made Easy
-=====================================
+# Django SAML2 Authentication Made Easy
 
-:Author: Lotterywest GoRillas Team
-:Version: Use 1.1.4 for Django <=1.9, 2.x.x for Django >= 1.9, Latest supported django version is 2.1
-
-.. image:: https://img.shields.io/pypi/pyversions/django-saml2-auth-lw.svg
-    :target: https://pypi.python.org/pypi/django-saml2-auth-lw
-
-.. image:: https://img.shields.io/pypi/v/django-saml2-auth-lw.svg
-    :target: https://pypi.python.org/pypi/django-saml2-auth-lw
-
-.. image:: https://img.shields.io/pypi/dm/django-saml2-auth-lw.svg
-        :target: https://pypi.python.org/pypi/django-saml2-auth-lw
+By Lotterywest GoRillas Team
+Version: Use 1.1.4 for Django <=1.9, 2.x.x for Django >= 1.9, Latest supported django version is 2.1
 
 This project aims to provide a dead simple way to integrate SAML2
 Authentication into your Django powered app. Try it now, and get rid of the
@@ -21,43 +10,40 @@ complicated configuration of SAML.
 Any SAML2 based SSO(Single-Sign-On) identity provider with dynamic metadata
 configuration is supported by this Django plugin, for example Okta.
 
-Dependencies
-============
+## Dependencies
 
 This plugin is compatible with Django 1.6/1.7/1.8/1.9/1.10. The `pysaml2` Python
 module is required.
 
 
-Install
-=======
+## Install
 
 You can install this plugin via `pip`:
 
-.. code-block:: bash
-
-    # pip install django_saml2_auth
+```bash
+$ pip install django_saml2_auth
+```
 
 or from source:
 
-.. code-block:: bash
-
-    # git clone Lotterywest GoRillas Team
-    # cd django-saml2-auth-lw
-    # python setup.py install
+```bash
+$ git clone Lotterywest GoRillas Team
+$ cd django-saml2-auth-lw
+$ python setup.py install
+```
 
 xmlsec is also required by pysaml2:
 
-.. code-block:: bash
+```bash
+# yum install xmlsec1
+// or
+# apt-get install xmlsec1
+// Mac
+# brew install xmlsec1`
+```
 
-    # yum install xmlsec1
-    // or
-    # apt-get install xmlsec1
-    // Mac
-    # brew install xmlsec1
 
-
-What does this plugin do?
-=========================
+## What does this plugin do?
 
 This plugin takes over Django's login page and redirect the user to a SAML2
 SSO authentication service. Once the user is logged in and redirected back,
@@ -67,16 +53,15 @@ redirected to their last visited page.
 
 
 
-How to use?
-===========
+## How to use?
 
-#. Import the views module in your root urls.py
+1. Import the views module in your root urls.py
 
     .. code-block:: python
 
         import django_saml2_auth.views
 
-#. Override the default login page in the root urls.py file, by adding these
+2. Override the default login page in the root urls.py file, by adding these
    lines **BEFORE** any `urlpatterns`:
 
     .. code-block:: python
@@ -95,7 +80,7 @@ How to use?
         # with this view.
         url(r'^admin/login/$', django_saml2_auth.views.signin),
 
-#. Add 'django_saml2_auth' to INSTALLED_APPS
+3. Add 'django_saml2_auth' to INSTALLED_APPS
 
     .. code-block:: python
 
@@ -104,7 +89,7 @@ How to use?
             'django_saml2_auth',
         ]
 
-#. In settings.py, add the SAML2 related configuration.
+4. In settings.py, add the SAML2 related configuration.
 
     Please note, the only required setting is **METADATA_AUTO_CONF_URL**.
     The following block shows all required and optional configuration settings
@@ -143,12 +128,11 @@ How to use?
             'FRONTEND_URL': 'https://myfrontendclient.com', # Redirect URL for the client if you are using JWT auth with DRF. See explanation below
         }
 
-#. In your SAML2 SSO identity provider, set the Single-sign-on URL and Audience
+5. In your SAML2 SSO identity provider, set the Single-sign-on URL and Audience
    URI(SP Entity ID) to http://your-domain/saml2_auth/acs/
 
 
-Explanation
------------
+## Explanation
 
 **METADATA_AUTO_CONF_URL** Auto SAML2 metadata configuration URL
 
@@ -161,7 +145,7 @@ Explanation
 **ATTRIBUTES_MAP** Mapping of Django user attributes to SAML2 user attributes
 
 **TRIGGER** Hooks to trigger additional actions during user login and creation
-flows. These TRIGGER hooks are strings containing a `dotted module name <https://docs.python.org/3/tutorial/modules.html#packages>`_
+flows. These TRIGGER hooks are strings containing a <https://docs.python.org/3/tutorial/modules.html#packages>.
 which point to a method to be called. The referenced method should accept a
 single argument which is a dictionary of attributes and values sent by the
 identity provider, representing the user's identity.
@@ -192,7 +176,6 @@ Example: 'https://myfrontendclient.com/?uid=<user id>&token=<jwt token>'
 With these params your client can now authenticate will server resources.
 
 Customize
-=========
 
 The default permission `denied` page and user `welcome` page can be
 overridden.
@@ -203,7 +186,7 @@ or 'django_saml2_auth/denied.html' in your project's template folder.
 If a 'django_saml2_auth/welcome.html' template exists, that page will be shown
 to the user upon login instead of the user being redirected to the previous
 visited page. This welcome page can contain some first-visit notes and welcome
-words. The `Django user object <https://docs.djangoproject.com/en/1.9/ref/contrib/auth/#django.contrib.auth.models.User>`_
+words. The <https://docs.djangoproject.com/en/1.9/ref/contrib/auth/#django.contrib.auth.models.User>
 is available within the template as the `user` template variable.
 
 To enable a logout page, add the following lines to urls.py, before any
@@ -225,8 +208,7 @@ defaults listed in the `settings.py` `ATTRIBUTES_MAP`, update them in
 `settings.py`.
 
 
-For Okta Users
-==============
+## For Okta Users
 
 I created this plugin originally for Okta.
 
@@ -239,20 +221,17 @@ You should see :
 The `Identity Provider metadata` link is the METADATA_AUTO_CONF_URL.
 
 
-How to Contribute
-=================
+## How to Contribute
 
 #. Check for open issues or open a fresh issue to start a discussion around a feature idea or a bug.
-#. Fork `the repository`_ on GitHub to start making your changes to the **master** branch (or branch off of it).
+#. Fork the [repository](https://github.com/Lotterywest/django-saml2-auth-lw) on GitHub to start making your changes to the **master** branch (or branch off of it).
 #. Write a test which shows that the bug was fixed or that the feature works as expected.
-#. Send a pull request and bug the maintainer until it gets merged and published. :) Make sure to add yourself to AUTHORS_.
-
-.. _`the repository`: https://github.com/Lotterywest/django-saml2-auth-lw
-.. _AUTHORS: hhttps://github.com/Lotterywest/django-saml2-auth-lw/blob/master/AUTHORS.rst
+#. Send a pull request and bug the maintainer until it gets merged and published. :) Make sure to add yourself to [authors](https://github.com/Lotterywest/django-saml2-auth-lw/blob/master/AUTHORS.rst).
 
 
-Release Log
-===========
+
+## Release Log
+
 2.2.2: Change package djangorestframework-jwt to drf-jwt
 
 2.2.1: Fixed is_safe_url parameters issue for django 2.1
