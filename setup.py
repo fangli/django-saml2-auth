@@ -14,17 +14,17 @@ with open(path.join(here, 'README.rst'), encoding='utf-8') as f:
     long_description = f.read()
 
 setup(
-    name='django_saml2_auth',
+    name='django_saml2_auth-lw',
 
     version='2.2.1',
 
     description='Django SAML2 Authentication Made Easy. Easily integrate with SAML2 SSO identity providers like Okta',
     long_description=long_description,
 
-    url='https://github.com/fangli/django-saml2-auth',
+    url='https://github.com/Lotterywest/django-saml2-auth-lw',
 
-    author='Fang Li',
-    author_email='surivlee+djsaml2auth@gmail.com',
+    author='Lotterywest GoRillas Team',
+    author_email='Gorillas@lotterywest.wa.gov.au',
 
     license='Apache 2.0',
 
@@ -61,7 +61,7 @@ setup(
     packages=find_packages(),
 
     install_requires=['pysaml2>=4.5.0',
-                      'djangorestframework-jwt',
+                      'drf-jwt',
                       'django-rest-auth', ],
     include_package_data=True,
 )
