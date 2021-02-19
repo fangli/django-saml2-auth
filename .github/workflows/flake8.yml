@@ -1,0 +1,18 @@
+name: Linting
+
+on:
+  push:
+    tags:
+      - "*"
+  pull_request:
+  release:
+    types:
+      - published
+
+jobs:
+  deploy:
+    name: Publish package to PyPI
+    runs-on: ubuntu-latest
+    steps:
+      - name: Run flake8 linting
+        uses: tayfun/flake8-your-pr@1.0.1
