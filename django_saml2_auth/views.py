@@ -120,6 +120,9 @@ def _get_saml_client(domain):
     if 'NAME_ID_FORMAT' in settings.SAML2_AUTH:
         saml_settings['service']['sp']['name_id_format'] = settings.SAML2_AUTH['NAME_ID_FORMAT']
 
+    if 'ACCEPTED_TIME_DIFF' in settings.SAML2_AUTH:
+        saml_settings['accepted_time_diff'] = settings.SAML2_AUTH['ACCEPTED_TIME_DIFF']
+
     if settings.SAML2_AUTH.get('CERT_FILE'):
         saml_settings['cert_file'] = settings.SAML2_AUTH['CERT_FILE']
 
