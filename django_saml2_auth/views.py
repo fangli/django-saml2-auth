@@ -19,7 +19,7 @@ from django.contrib.auth import login, logout, get_user_model
 from django.shortcuts import render
 from django.views.decorators.csrf import csrf_exempt
 from django.template import TemplateDoesNotExist
-from django.http import HttpResponseRedirect
+from django.http import HttpResponse, HttpResponseRedirect
 from django.utils.http import is_safe_url
 
 from rest_auth.utils import jwt_encode
@@ -93,6 +93,8 @@ def _get_saml_client(domain):
     acs_url = domain + get_reverse([acs, 'acs', 'django_saml2_auth:acs'])
     metadata = _get_metadata()
 
+    authn_requests_signed = settings.SAML2_AUTH.get('AUTHN_REQUESTS_SIGNED', False)
+
     saml_settings = {
         'metadata': metadata,
         'service': {
@@ -104,7 +106,7 @@ def _get_saml_client(domain):
                     ],
                 },
                 'allow_unsolicited': True,
-                'authn_requests_signed': False,
+                'authn_requests_signed': authn_requests_signed,
                 'logout_requests_signed': True,
                 'want_assertions_signed': True,
                 'want_response_signed': False,
@@ -117,6 +119,15 @@ def _get_saml_client(domain):
 
     if 'NAME_ID_FORMAT' in settings.SAML2_AUTH:
         saml_settings['service']['sp']['name_id_format'] = settings.SAML2_AUTH['NAME_ID_FORMAT']
+
+    if 'ACCEPTED_TIME_DIFF' in settings.SAML2_AUTH:
+        saml_settings['accepted_time_diff'] = settings.SAML2_AUTH['ACCEPTED_TIME_DIFF']
+
+    if settings.SAML2_AUTH.get('CERT_FILE'):
+        saml_settings['cert_file'] = settings.SAML2_AUTH['CERT_FILE']
+
+    if settings.SAML2_AUTH.get('KEY_FILE'):
+        saml_settings['key_file'] = settings.SAML2_AUTH['KEY_FILE']
 
     spConfig = Saml2Config()
     spConfig.load(saml_settings)
@@ -155,9 +166,18 @@ def _create_new_user(username, email, firstname, lastname):
 
 @csrf_exempt
 def acs(r):
+    try:
+        import urlparse as _urlparse
+        from urllib import unquote
+    except:
+        import urllib.parse as _urlparse
+        from urllib.parse import unquote
+
     saml_client = _get_saml_client(get_current_domain(r))
     resp = r.POST.get('SAMLResponse', None)
     next_url = r.session.get('login_next_url', _default_next_url())
+    # Use RelayState if available, else fall back to next_url.
+    next_url = r.POST.get('RelayState', next_url)
 
     if not resp:
         return HttpResponseRedirect(get_reverse([denied, 'denied', 'django_saml2_auth:denied']))
@@ -204,12 +224,22 @@ def acs(r):
     if settings.SAML2_AUTH.get('USE_JWT') is True:
         # We use JWT auth send token to frontend
         jwt_token = jwt_encode(target_user)
-        query = '?uid={}&token={}'.format(target_user.id, jwt_token)
+        params = {"uid": target_user.id, "token": jwt_token}
 
         frontend_url = settings.SAML2_AUTH.get(
             'FRONTEND_URL', next_url)
 
-        return HttpResponseRedirect(frontend_url+query)
+        if next_url and next_url != _default_next_url():
+            frontend_url = next_url
+
+        # Reconstruct URL with added parameters.
+        url_parts = list(_urlparse.urlparse(frontend_url, allow_fragments=False))
+        query = dict(_urlparse.parse_qsl(url_parts[4]))
+        query.update(params)
+
+        url_parts[4] = _urlparse.urlencode(query)
+
+        return HttpResponseRedirect(_urlparse.urlunparse(url_parts))
 
     if is_new_user:
         try:
@@ -247,16 +277,21 @@ def signin(r):
     r.session['login_next_url'] = next_url
 
     saml_client = _get_saml_client(get_current_domain(r))
-    _, info = saml_client.prepare_for_authenticate()
+    _, info = saml_client.prepare_for_authenticate(binding=BINDING_HTTP_POST, relay_state=next_url)
 
-    redirect_url = None
+    if info["method"] == "GET":
+        redirect_url = None
 
-    for key, value in info['headers']:
-        if key == 'Location':
-            redirect_url = value
-            break
+        for key, value in info['headers']:
+            if key == 'Location':
+                redirect_url = value
+                break
 
-    return HttpResponseRedirect(redirect_url)
+        return HttpResponseRedirect(redirect_url)
+
+    elif info["method"] == "POST":
+        response_content = info["data"]
+        return HttpResponse(response_content)
 
 
 def signout(r):
