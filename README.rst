@@ -141,7 +141,7 @@ How to use?
 
             # Optional settings below
             'DEFAULT_NEXT_URL': '/admin',  # Custom target redirect URL after the user get logged in. Default to /admin if not set. This setting will be overwritten if you have parameter ?next= specificed in the login URL.
-            'CREATE_USER': 'TRUE', # Create a new Django user when a new user logs in. Defaults to True.
+            'CREATE_USER': True, # Create a new Django user when a new user logs in. Defaults to True.
             'NEW_USER_PROFILE': {
                 'USER_GROUPS': [],  # The default group name when a new user logs in
                 'ACTIVE_STATUS': True,  # The default active status for new users
