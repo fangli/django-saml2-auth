@@ -172,11 +172,7 @@ def signin(request: HttpRequest):
     saml_client = get_saml_client(get_assertion_url(request), acs)
     _, info = saml_client.prepare_for_authenticate(relay_state=next_url)
 
-    redirect_url = None
-
-    if "Location" in info["headers"]:
-        redirect_url = info["headers"]["Location"]
-
+    redirect_url = dict(info["headers"]).get("Location", "")
     return HttpResponseRedirect(redirect_url)
 
 
