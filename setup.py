@@ -16,12 +16,12 @@ with open(path.join(here, "README.rst"), encoding="utf-8") as f:
 setup(
     name="django_saml2_auth",
 
-    version="3.0.0",
+    version="3.0.1",
 
     description="Django SAML2 Authentication Made Easy.",
     long_description=long_description,
 
-    url="https://github.com/loadimpact/django-saml2-auth",
+    url="https://github.com/grafana/django-saml2-auth",
 
     author="Fang Li",
     author_email="surivlee+djsaml2auth@gmail.com",
