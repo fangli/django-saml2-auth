@@ -219,6 +219,8 @@ With these params your client can now authenticate with server resources.
 
 **WANT_RESPONSE_SIGNED** Set this to the boolean True if you require your provider to sign the response.
 
+**ACCEPTED_TIME_DIFF** Sets the accepted time diff in seconds `PySaml2 Accepted Time Diff <https://pysaml2.readthedocs.io/en/latest/howto/config.html#accepted-time-diff>`_
+
 Customize
 =========
 

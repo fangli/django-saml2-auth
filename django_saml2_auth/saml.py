@@ -182,6 +182,10 @@ def get_saml_client(domain: str,
     if name_id_format:
         saml_settings["service"]["sp"]["name_id_format"] = name_id_format
 
+    accepted_time_diff = settings.SAML2_AUTH.get("ACCEPTED_TIME_DIFF"):
+    if accepted_time_diff:
+        saml_settings['accepted_time_diff'] = settings.SAML2_AUTH['ACCEPTED_TIME_DIFF']
+
     try:
         sp_config = Saml2Config()
         sp_config.load(saml_settings)
