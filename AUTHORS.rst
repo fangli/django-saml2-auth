@@ -52,3 +52,4 @@ If your code or changes are here, but you are not mentioned, please open an issu
 - `Griffin J Rademacher <https://github.com/favorable-mutation>`_
 - `Akshit Dhar <https://github.com/akshit-wwstay>`_
 - `Jean Vincent <https://github.com/jean-sh>`_
+- `Søren Howe Gersager <https://github.com/syre>`_
