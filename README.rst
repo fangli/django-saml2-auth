@@ -279,7 +279,11 @@ How to Contribute
 Release Log
 ===========
 
-3.0.0 : Extensive refactoring of the library (check the commit logs) - incompatible with previous versions
+3.1.0: Make ``token`` field optional in the attribute statement by introducing ``REQUIRE_TOKEN`` settings (default: ``True``)
+
+3.0.1: Minor fixes
+
+3.0.0: Extensive refactoring of the library (check the commit logs) - incompatible with previous versions
 
 2.3.0: Merge of PRs plus bugfixes and (manual) testing
 
