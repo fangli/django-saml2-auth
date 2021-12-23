@@ -185,7 +185,7 @@ def test_validate_metadata_url_failure():
     URL."""
     responses.add(responses.GET, METADATA_URL1)
     result = validate_metadata_url(METADATA_URL1)
-    assert result == False
+    assert result is False
 
 
 @responses.activate
@@ -365,3 +365,13 @@ def test_extract_user_identity_success():
     assert result["last_name"] == "Doe"
     assert result["token"] == "TOKEN"
     assert result["user_identity"] == get_user_identity()
+
+
+def test_extract_user_identity_token_not_required(settings: SettingsWrapper):
+    """Test extract_user_identity function to verify if it correctly extracts user identity
+    information from a (pysaml2) parsed SAML response when token is not required."""
+    settings.SAML2_AUTH["TOKEN_REQUIRED"] = False
+
+    result = extract_user_identity(get_user_identity())
+    assert len(result) == 5
+    assert "token" not in result

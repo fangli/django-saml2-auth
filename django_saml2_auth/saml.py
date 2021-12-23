@@ -292,18 +292,26 @@ def extract_user_identity(user_identity: Dict[str, Any]) -> Dict[str, Optional[A
             for backwards compatibility
     """
     saml2_auth_settings = settings.SAML2_AUTH
-    email_field = dictor(saml2_auth_settings, "ATTRIBUTES_MAP.email", default="user.email")
-    username_field = dictor(saml2_auth_settings, "ATTRIBUTES_MAP.username", default="user.username")
-    firstname_field = dictor(saml2_auth_settings, "ATTRIBUTES_MAP.first_name", default="user.first_name")
-    lastname_field = dictor(saml2_auth_settings, "ATTRIBUTES_MAP.last_name", default="user.last_name")
-    token_field = dictor(saml2_auth_settings, "ATTRIBUTES_MAP.token", default="token")
+
+    email_field = dictor(
+        saml2_auth_settings, "ATTRIBUTES_MAP.email", default="user.email")
+    username_field = dictor(
+        saml2_auth_settings, "ATTRIBUTES_MAP.username", default="user.username")
+    firstname_field = dictor(
+        saml2_auth_settings, "ATTRIBUTES_MAP.first_name", default="user.first_name")
+    lastname_field = dictor(
+        saml2_auth_settings, "ATTRIBUTES_MAP.last_name", default="user.last_name")
 
     user = {}
     user["email"] = dictor(user_identity, f"{email_field}/0", pathsep="/")  # Path includes "."
     user["username"] = dictor(user_identity, f"{username_field}/0", pathsep="/")
     user["first_name"] = dictor(user_identity, f"{firstname_field}/0", pathsep="/")
     user["last_name"] = dictor(user_identity, f"{lastname_field}/0", pathsep="/")
-    user["token"] = dictor(user_identity, f"{token_field}.0")
+
+    TOKEN_REQUIRED = dictor(saml2_auth_settings, "TOKEN_REQUIRED", default=True)
+    if TOKEN_REQUIRED:
+        token_field = dictor(saml2_auth_settings, "ATTRIBUTES_MAP.token", default="token")
+        user["token"] = dictor(user_identity, f"{token_field}.0")
 
     if user["email"]:
         user["email"] = user["email"].lower()
@@ -321,7 +329,7 @@ def extract_user_identity(user_identity: Dict[str, Any]) -> Dict[str, Optional[A
             "status_code": 422
         })
 
-    if not user["token"]:
+    if TOKEN_REQUIRED and not user.get("token"):
         raise SAMLAuthError("No token specified.", extra={
             "exc_type": ValueError,
             "error_code": NO_TOKEN_SPECIFIED,

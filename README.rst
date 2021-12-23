@@ -133,7 +133,7 @@ How to use?
                 'username': 'UserName',
                 'first_name': 'FirstName',
                 'last_name': 'LastName',
-                'token': 'Token',  # Mandatory
+                'token': 'Token',  # Mandatory, can be unrequired if TOKEN_REQUIRED is False
                 'groups': 'Groups',  # Optional
             },
             'GROUPS_MAP': {  # Optionally allow mapping SAML2 Groups to Django Groups
@@ -158,6 +158,7 @@ How to use?
             'WANT_ASSERTIONS_SIGNED': True,  # Require each assertion to be signed
             'WANT_RESPONSE_SIGNED': False,  # Require response to be signed
             'ALLOWED_REDIRECT_HOSTS': ["https://myfrontendclient.com"] # Allowed hosts to redirect to using the ?next parameter
+            'TOKEN_REQUIRED': True,  # Whether or not to require the token parameter in the SAML assertion
         }
 
 #. In your SAML2 SSO identity provider, set the Single-sign-on URL and Audience URI (SP Entity ID) to http://your-domain/saml2_auth/acs/
@@ -220,6 +221,8 @@ With these params your client can now authenticate with server resources.
 **WANT_RESPONSE_SIGNED** Set this to the boolean True if you require your provider to sign the response.
 
 **ACCEPTED_TIME_DIFF** Sets the accepted time diff in seconds `PySaml2 Accepted Time Diff <https://pysaml2.readthedocs.io/en/latest/howto/config.html#accepted-time-diff>`_
+
+**TOKEN_REQUIRED** Set this to the boolean False if you don't require the token parameter in the SAML assertion.
 
 Customize
 =========
