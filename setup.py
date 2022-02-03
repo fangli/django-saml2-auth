@@ -16,7 +16,7 @@ with open(path.join(here, "README.rst"), encoding="utf-8") as f:
 setup(
     name="django_saml2_auth",
 
-    version="3.0.1",
+    version="3.2.0",
 
     description="Django SAML2 Authentication Made Easy.",
     long_description=long_description,
