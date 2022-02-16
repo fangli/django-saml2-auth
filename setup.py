@@ -10,13 +10,13 @@ from os import path
 here = path.abspath(path.dirname(__file__))
 
 # Get the long description from the README file
-with open(path.join(here, "README.rst"), encoding="utf-8") as f:
+with open(path.join(here, "README.md"), encoding="utf-8") as f:
     long_description = f.read()
 
 setup(
     name="django_saml2_auth",
 
-    version="3.2.0",
+    version="3.3.0",
 
     description="Django SAML2 Authentication Made Easy.",
     long_description=long_description,
@@ -64,8 +64,10 @@ setup(
 
     packages=find_packages(),
 
-    install_requires=["pysaml2==7.1.0",
-                      "PyJWT==2.3.0",
-                      "dictor==0.1.7"],
+    install_requires=[
+        "pysaml2==7.1.0",
+        "PyJWT==2.3.0",
+        "dictor==0.1.7"
+    ],
     include_package_data=True,
 )
