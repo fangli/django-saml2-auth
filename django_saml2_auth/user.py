@@ -1,7 +1,7 @@
 """Utility functions for getting or creating user accounts
 """
 
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from typing import Any, Dict, Tuple, Type, Union, Optional
 
 import jwt
@@ -297,7 +297,7 @@ def create_jwt_token(user_id: str) -> Optional[str]:
     jwt_expiration = settings.SAML2_AUTH.get("JWT_EXP", 60)  # default: 1 minute
     payload = {
         user_model.USERNAME_FIELD: user_id,
-        "exp": (datetime.utcnow() +
+        "exp": (datetime.now(tz=timezone.utc) +
                 timedelta(seconds=jwt_expiration)).timestamp()
     }
 
