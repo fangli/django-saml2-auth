@@ -15,7 +15,10 @@ from django.contrib.auth.decorators import login_required
 from django.http import HttpRequest, HttpResponseRedirect
 from django.shortcuts import render
 from django.template import TemplateDoesNotExist
-from django.utils.http import is_safe_url
+try:
+    from django.utils.http import url_has_allowed_host_and_scheme as is_safe_url
+except ImportError:
+    from django.utils.http import is_safe_url
 from django.views.decorators.csrf import csrf_exempt
 from django_saml2_auth.errors import INACTIVE_USER, INVALID_REQUEST_METHOD, USER_MISMATCH
 from django_saml2_auth.exceptions import SAMLAuthError
