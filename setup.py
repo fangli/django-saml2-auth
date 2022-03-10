@@ -39,12 +39,9 @@ setup(
 
         "License :: OSI Approved :: Apache Software License",
 
-        "Framework :: Django :: 1.7",
-        "Framework :: Django :: 1.8",
-        "Framework :: Django :: 1.9",
-        "Framework :: Django :: 1.10",
-        "Framework :: Django :: 2.1",
         "Framework :: Django :: 2.2",
+        "Framework :: Django :: 3.2",
+        "Framework :: Django :: 4.0",
 
         "Programming Language :: Python :: 3",
         "Programming Language :: Python :: 3.5",
