@@ -34,6 +34,7 @@ If your code or changes are here, but you are not mentioned, please open
 an issue.
 
 - [Mostafa Moradian](https://github.com/mostafa) (k6.io & Grafana Labs)
+- [Rafael Muñoz Cárdenas](https://github.com/Menda) (k6.io & Grafana Labs)
 - [DSpeichert](https://github.com/DSpeichert)
 - [jacobh](https://github.com/jacobh)
 - [Gene Wood](http://github.com/gene1wood/)
