@@ -19,10 +19,12 @@ from django.contrib.auth import login, logout, get_user_model
 from django.shortcuts import render
 from django.views.decorators.csrf import csrf_exempt
 from django.template import TemplateDoesNotExist
-from django.http import HttpResponseRedirect
+from django.http import HttpResponseRedirect, HttpResponse
 from django.utils.http import is_safe_url
 
 from rest_auth.utils import jwt_encode
+
+from .models import SamlMetaData
 
 
 # default User or custom User. Now both will work.
@@ -57,7 +59,7 @@ def get_current_domain(r):
     )
 
 
-def get_reverse(objs):
+def get_reverse(objs, args = []):
     '''In order to support different django version, I have to do this '''
     if parse_version(get_version()) >= parse_version('2.0'):
         from django.urls import reverse
@@ -68,33 +70,29 @@ def get_reverse(objs):
 
     for obj in objs:
         try:
-            return reverse(obj)
+            return reverse(obj, args)
         except:
             pass
     raise Exception('We got a URL reverse issue: %s. This is a known issue but please still submit a ticket at https://github.com/fangli/django-saml2-auth/issues/new' % str(objs))
 
+def _wrap_url(url):
+    return {
+        "remote": [
+            {
+                "url": url,
+            },
+        ]
+    }
 
-def _get_metadata():
-    if 'METADATA_LOCAL_FILE_PATH' in settings.SAML2_AUTH:
-        return {
-            'local': [settings.SAML2_AUTH['METADATA_LOCAL_FILE_PATH']]
-        }
-    else:
-        return {
-            'remote': [
-                {
-                    "url": settings.SAML2_AUTH['METADATA_AUTO_CONF_URL'],
-                },
-            ]
-        }
+def _get_saml_client(domain, metadata_id):
+    acs_url = domain + get_reverse(["passth_saml2:acs"], args=[metadata_id])
+    load_metadata_url = get_reverse(
+        ["passth_saml2:load_metadata"], args=[metadata_id]
+    )
 
-
-def _get_saml_client(domain):
-    acs_url = domain + get_reverse([acs, 'acs', 'django_saml2_auth:acs'])
-    metadata = _get_metadata()
 
     saml_settings = {
-        'metadata': metadata,
+        'metadata': _wrap_url(load_metadata_url),
         'service': {
             'sp': {
                 'endpoints': {
@@ -112,8 +110,11 @@ def _get_saml_client(domain):
         },
     }
 
-    if 'ENTITY_ID' in settings.SAML2_AUTH:
-        saml_settings['entityid'] = settings.SAML2_AUTH['ENTITY_ID']
+    # if 'ENTITY_ID' in settings.SAML2_AUTH:
+    #     saml_settings['entityid'] = settings.SAML2_AUTH['ENTITY_ID']
+
+    # FIXME: we manually set each saml app to have the same id as its respective acs url
+    saml_settings["entityid"] = acs_url
 
     if 'NAME_ID_FORMAT' in settings.SAML2_AUTH:
         saml_settings['service']['sp']['name_id_format'] = settings.SAML2_AUTH['NAME_ID_FORMAT']
@@ -152,10 +153,29 @@ def _create_new_user(username, email, firstname, lastname):
     user.save()
     return user
 
+def load_metadata(r, metadata_id):
+    metadata = SamlMetaData.objects.filter(pk=metadata_id).first()
+
+    if not metadata:
+        return HttpResponseRedirect(
+            get_reverse([denied, "denied", "passth_saml2:denied"])
+        )
+
+    return HttpResponse(
+        metadata.metadata_contents,
+        headers={"Content-Type": "text/xml; charset=utf-8"},
+    )
 
 @csrf_exempt
-def acs(r):
-    saml_client = _get_saml_client(get_current_domain(r))
+def acs(r, metadata_id):
+    metadata_query = SamlMetaData.objects.filter(pk=metadata_id)
+    if not metadata_query:
+        return HttpResponseRedirect(get_reverse([denied, 'denied', 'django_saml2_auth:denied']))
+
+    metadata = metadata_query.first()
+    expected_email_domain = metadata.email_domain
+
+    saml_client = _get_saml_client(get_current_domain(r), metadata_id)
     resp = r.POST.get('SAMLResponse', None)
     next_url = r.session.get('login_next_url', _default_next_url())
 
@@ -166,6 +186,23 @@ def acs(r):
         resp, entity.BINDING_HTTP_POST)
     if authn_response is None:
         return HttpResponseRedirect(get_reverse([denied, 'denied', 'django_saml2_auth:denied']))
+
+    user_name_id = None
+    try:
+        user_subject = authn_response.get_subject()
+        user_name_id = user_subject.text
+    except:
+        return HttpResponseRedirect(
+            get_reverse([denied, "denied", "passth_saml2:denied"])
+        )
+
+    # NOTE: to protect against exploit caused by malicious config of other idps
+    user_email_domain = user_name_id.split("@")[1]
+    if not expected_email_domain == user_email_domain:
+        return HttpResponseRedirect(
+            get_reverse([denied, "denied", "passth_saml2:denied"])
+        )
+
 
     user_identity = authn_response.get_identity()
     if user_identity is None:
@@ -180,7 +217,7 @@ def acs(r):
     is_new_user = False
 
     try:
-        target_user = User.objects.get(username=user_name)
+        target_user = User.objects.get(username=user_name_id)
         if settings.SAML2_AUTH.get('TRIGGER', {}).get('BEFORE_LOGIN', None):
             import_string(settings.SAML2_AUTH['TRIGGER']['BEFORE_LOGIN'])(user_identity)
     except User.DoesNotExist:
@@ -220,7 +257,7 @@ def acs(r):
         return HttpResponseRedirect(next_url)
 
 
-def signin(r):
+def signin(r, metadata_id):
     try:
         import urlparse as _urlparse
         from urllib import unquote
@@ -246,7 +283,7 @@ def signin(r):
 
     r.session['login_next_url'] = next_url
 
-    saml_client = _get_saml_client(get_current_domain(r))
+    saml_client = _get_saml_client(get_current_domain(r), metadata_id)
     _, info = saml_client.prepare_for_authenticate()
 
     redirect_url = None
