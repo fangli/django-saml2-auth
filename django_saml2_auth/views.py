@@ -86,13 +86,15 @@ def _wrap_url(url):
 
 def _get_saml_client(domain, metadata_id):
     acs_url = domain + get_reverse(["passth_saml2:acs"], args=[metadata_id])
-    load_metadata_url = get_reverse(
-        ["passth_saml2:load_metadata"], args=[metadata_id]
+    
+    raw_metadata_url = domain + get_reverse(
+        "passth_saml2:load_metadata", args=[metadata_id]
     )
+    wrapped_metadata_url = _wrap_url(raw_metadata_url)
 
 
     saml_settings = {
-        'metadata': _wrap_url(load_metadata_url),
+        'metadata': wrapped_metadata_url,
         'service': {
             'sp': {
                 'endpoints': {
@@ -169,7 +171,7 @@ def load_metadata(r, metadata_id):
 @csrf_exempt
 def acs(r, metadata_id):
     metadata_query = SamlMetaData.objects.filter(pk=metadata_id)
-    if not metadata_query:
+    if not metadata_query.exists():
         return HttpResponseRedirect(get_reverse([denied, 'denied', 'django_saml2_auth:denied']))
 
     metadata = metadata_query.first()
@@ -187,6 +189,7 @@ def acs(r, metadata_id):
     if authn_response is None:
         return HttpResponseRedirect(get_reverse([denied, 'denied', 'django_saml2_auth:denied']))
 
+    # must have all IDPs configure this value to return principal's email
     user_name_id = None
     try:
         user_subject = authn_response.get_subject()
