@@ -59,7 +59,7 @@ def get_current_domain(r):
     )
 
 
-def get_reverse(objs, args = []):
+def get_reverse(objs, reverse_args = None):
     '''In order to support different django version, I have to do this '''
     if parse_version(get_version()) >= parse_version('2.0'):
         from django.urls import reverse
@@ -70,7 +70,7 @@ def get_reverse(objs, args = []):
 
     for obj in objs:
         try:
-            return reverse(obj, args)
+            return reverse(obj, args=reverse_args)
         except:
             pass
     raise Exception('We got a URL reverse issue: %s. This is a known issue but please still submit a ticket at https://github.com/fangli/django-saml2-auth/issues/new' % str(objs))
@@ -85,10 +85,10 @@ def _wrap_url(url):
     }
 
 def _get_saml_client(domain, metadata_id):
-    acs_url = domain + get_reverse(["passth_saml2:acs"], args=[metadata_id])
+    acs_url = domain + get_reverse(["django_saml2_auth:acs"], args=[metadata_id])
     
     raw_metadata_url = domain + get_reverse(
-        "passth_saml2:load_metadata", args=[metadata_id]
+        "django_saml2_auth:load_metadata", args=[metadata_id]
     )
     wrapped_metadata_url = _wrap_url(raw_metadata_url)
 
@@ -160,7 +160,7 @@ def load_metadata(r, metadata_id):
 
     if not metadata:
         return HttpResponseRedirect(
-            get_reverse([denied, "denied", "passth_saml2:denied"])
+            get_reverse([denied, "denied", "django_saml2_auth:denied"])
         )
 
     return HttpResponse(
@@ -196,14 +196,14 @@ def acs(r, metadata_id):
         user_name_id = user_subject.text
     except:
         return HttpResponseRedirect(
-            get_reverse([denied, "denied", "passth_saml2:denied"])
+            get_reverse([denied, "denied", "django_saml2_auth:denied"])
         )
 
     # NOTE: to protect against exploit caused by malicious config of other idps
     user_email_domain = user_name_id.split("@")[1]
     if not expected_email_domain == user_email_domain:
         return HttpResponseRedirect(
-            get_reverse([denied, "denied", "passth_saml2:denied"])
+            get_reverse([denied, "denied", "django_saml2_auth:denied"])
         )
 
 
