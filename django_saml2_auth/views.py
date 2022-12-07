@@ -45,7 +45,7 @@ def _default_next_url():
     if 'DEFAULT_NEXT_URL' in settings.SAML2_AUTH:
         return settings.SAML2_AUTH['DEFAULT_NEXT_URL']
     # Lazily evaluate this in case we don't have admin loaded.
-    return get_reverse('admin:index')
+    return get_reverse('admin:index' if 'REVERSE_URL' not in settings.SAML2_AUTH.keys() else settings.SAML2_AUTH['REVERSE_URL'])
 
 
 def get_current_domain(r):
