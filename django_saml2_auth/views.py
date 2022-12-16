@@ -112,10 +112,7 @@ def _get_saml_client(domain, metadata_id):
         },
     }
 
-    # if 'ENTITY_ID' in settings.SAML2_AUTH:
-    #     saml_settings['entityid'] = settings.SAML2_AUTH['ENTITY_ID']
-
-    # FIXME: we manually set each saml app to have the same id as its respective acs url
+    # we manually set each saml app to have the same id as its respective acs url
     saml_settings["entityid"] = acs_url
 
     if 'NAME_ID_FORMAT' in settings.SAML2_AUTH:
@@ -170,11 +167,10 @@ def load_metadata(r, metadata_id):
 
 @csrf_exempt
 def acs(r, metadata_id):
-    metadata_query = SamlMetaData.objects.filter(pk=metadata_id)
-    if not metadata_query.exists():
+    metadata = SamlMetaData.objects.filter(pk=metadata_id).first()
+    if not metadata:
         return HttpResponseRedirect(get_reverse([denied, 'denied', 'django_saml2_auth:denied']))
 
-    metadata = metadata_query.first()
     expected_email_domain = metadata.email_domain
 
     saml_client = _get_saml_client(get_current_domain(r), metadata_id)
