@@ -21,6 +21,7 @@ from django.views.decorators.csrf import csrf_exempt
 from django.template import TemplateDoesNotExist
 from django.http import HttpResponseRedirect, HttpResponse
 from django.utils.http import is_safe_url
+from tempfile import NamedTemporaryFile
 
 from rest_auth.utils import jwt_encode
 
@@ -75,22 +76,24 @@ def get_reverse(objs, reverse_args = None):
             pass
     raise Exception('We got a URL reverse issue: %s. This is a known issue but please still submit a ticket at https://github.com/fangli/django-saml2-auth/issues/new' % str(objs))
 
-def _wrap_url(url):
+def _wrap_url(path):
     return {
-        "remote": [
-            {
-                "url": url,
-            },
-        ]
+        "local": [path]
     }
 
 def _get_saml_client(domain, metadata_id):
     acs_url = domain + get_reverse(["django_saml2_auth:acs"], reverse_args=[metadata_id])
     
-    raw_metadata_url = domain + get_reverse(
-        "django_saml2_auth:load_metadata", reverse_args=[metadata_id]
-    )
-    wrapped_metadata_url = _wrap_url(raw_metadata_url)
+    # raw_metadata_url = domain + get_reverse(
+    #     "django_saml2_auth:load_metadata", reverse_args=[metadata_id]
+    # )
+
+    metadata_model = SamlMetaData.objects.get(pk=metadata_id)
+
+    tmp = NamedTemporaryFile()
+    tmp.write(metadata_model.metadata_contents.encode('utf-8'))
+
+    wrapped_metadata_url = _wrap_url(tmp.name)
 
 
     saml_settings = {
