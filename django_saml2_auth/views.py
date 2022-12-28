@@ -9,6 +9,7 @@ from saml2 import (
 )
 from saml2.client import Saml2Client
 from saml2.config import Config as Saml2Config
+from saml2.metadata import MetadataStore
 
 from django import get_version
 from pkg_resources import parse_version
@@ -89,6 +90,7 @@ def _get_saml_client(domain, metadata_id):
     # )
 
     metadata_model = SamlMetaData.objects.get(pk=metadata_id)
+    mds = MetadataStore.from_string(metadata_model.metadata_contents)
 
     tmp = NamedTemporaryFile()
     tmp.write(metadata_model.metadata_contents.encode('utf-8'))
@@ -120,7 +122,7 @@ def _get_saml_client(domain, metadata_id):
 
     if 'NAME_ID_FORMAT' in settings.SAML2_AUTH:
         saml_settings['service']['sp']['name_id_format'] = settings.SAML2_AUTH['NAME_ID_FORMAT']
-
+        
     spConfig = Saml2Config()
     spConfig.load(saml_settings)
     spConfig.allow_unknown_attributes = True
