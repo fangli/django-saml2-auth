@@ -9,7 +9,6 @@ from saml2 import (
 )
 from saml2.client import Saml2Client
 from saml2.config import Config as Saml2Config
-from saml2.mdstore import MetadataStore, InMemoryMetaData
 
 from django import get_version
 from pkg_resources import parse_version
@@ -20,7 +19,7 @@ from django.contrib.auth import login, logout, get_user_model
 from django.shortcuts import render
 from django.views.decorators.csrf import csrf_exempt
 from django.template import TemplateDoesNotExist
-from django.http import HttpResponseRedirect, HttpResponse
+from django.http import HttpResponseRedirect
 from django.utils.http import is_safe_url
 from tempfile import NamedTemporaryFile
 
@@ -77,37 +76,25 @@ def get_reverse(objs, reverse_args = None):
             pass
     raise Exception('We got a URL reverse issue: %s. This is a known issue but please still submit a ticket at https://github.com/fangli/django-saml2-auth/issues/new' % str(objs))
 
+def _initialize_temp_file(metadata_contents):
+    tmp = NamedTemporaryFile()
+    tmp.write(metadata_contents)
+    tmp.seek(0)
+    return tmp
+
 def _wrap_url(path):
     return {
         "local": [path]
     }
 
-def _initialize_mds(cnf):
-    acs = cnf.attribute_converters
-    if acs is None:
-        raise Exception("Missing attribute converter specification")
-
-    mds = InMemoryMetaData(
-        acs,
-    )
-
-    return mds
-
 def _get_saml_client(domain, metadata_id):
     acs_url = domain + get_reverse(["django_saml2_auth:acs"], reverse_args=[metadata_id])
-    
-    # raw_metadata_url = domain + get_reverse(
-    #     "django_saml2_auth:load_metadata", reverse_args=[metadata_id]
-    # )
 
     metadata_model = SamlMetaData.objects.get(pk=metadata_id)
-    
-    tmp = NamedTemporaryFile()
-    tmp.write(metadata_model.metadata_contents.encode('utf-8'))
-    tmp.seek(0)
+    encoded_metadata = metadata_model.metadata_contents.encode('utf-8')
 
+    tmp = _initialize_temp_file(encoded_metadata)
     wrapped_metadata_url = _wrap_url(tmp.name)
-
 
     saml_settings = {
         'metadata': wrapped_metadata_url,
@@ -128,7 +115,7 @@ def _get_saml_client(domain, metadata_id):
         },
     }
 
-    # we manually set each saml app to have the same id as its respective acs url
+    # as acs urls now include metadata IDs, dynamically set the entity ID
     saml_settings["entityid"] = acs_url
 
     if 'NAME_ID_FORMAT' in settings.SAML2_AUTH:
@@ -137,10 +124,7 @@ def _get_saml_client(domain, metadata_id):
     spConfig = Saml2Config()
     spConfig.load(saml_settings)
     spConfig.allow_unknown_attributes = True
-    
-    # mds = _initialize_mds(spConfig)
-    # mds.parse(metadata_model.metadata_contents)
-    # spConfig.metadata = mds
+
     tmp.close()
     saml_client = Saml2Client(config=spConfig)
     return saml_client
@@ -172,19 +156,6 @@ def _create_new_user(username, email, firstname, lastname):
     user.is_superuser = settings.SAML2_AUTH.get('NEW_USER_PROFILE', {}).get('SUPERUSER_STATUS', False)
     user.save()
     return user
-
-def load_metadata(r, metadata_id):
-    metadata = SamlMetaData.objects.filter(pk=metadata_id).first()
-
-    if not metadata:
-        return HttpResponseRedirect(
-            get_reverse([denied, "denied", "django_saml2_auth:denied"])
-        )
-
-    return HttpResponse(
-        metadata.metadata_contents,
-        headers={"Content-Type": "text/xml; charset=utf-8"},
-    )
 
 @csrf_exempt
 def acs(r, metadata_id):
