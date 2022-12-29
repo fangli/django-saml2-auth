@@ -102,14 +102,14 @@ def _get_saml_client(domain, metadata_id):
 
     metadata_model = SamlMetaData.objects.get(pk=metadata_id)
     
-    # tmp = NamedTemporaryFile()
-    # tmp.write(metadata_model.metadata_contents.encode('utf-8'))
+    tmp = NamedTemporaryFile()
+    tmp.write(metadata_model.metadata_contents.encode('utf-8'))
 
-    # wrapped_metadata_url = _wrap_url(tmp.name)
+    wrapped_metadata_url = _wrap_url(tmp.name)
 
 
     saml_settings = {
-        # 'metadata': wrapped_metadata_url,
+        'metadata': wrapped_metadata_url,
         'service': {
             'sp': {
                 'endpoints': {
@@ -137,10 +137,10 @@ def _get_saml_client(domain, metadata_id):
     spConfig.load(saml_settings)
     spConfig.allow_unknown_attributes = True
     
-    mds = _initialize_mds(spConfig)
-    mds.parse(metadata_model.metadata_contents)
-    spConfig.metadata = mds
-
+    # mds = _initialize_mds(spConfig)
+    # mds.parse(metadata_model.metadata_contents)
+    # spConfig.metadata = mds
+    tmp.close()
     saml_client = Saml2Client(config=spConfig)
     return saml_client
 
