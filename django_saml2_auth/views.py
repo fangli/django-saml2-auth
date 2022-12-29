@@ -22,6 +22,9 @@ from django.template import TemplateDoesNotExist
 from django.http import HttpResponseRedirect
 from django.utils.http import is_safe_url
 from tempfile import NamedTemporaryFile
+import contextlib
+
+
 
 from rest_auth.utils import jwt_encode
 
@@ -76,11 +79,15 @@ def get_reverse(objs, reverse_args = None):
             pass
     raise Exception('We got a URL reverse issue: %s. This is a known issue but please still submit a ticket at https://github.com/fangli/django-saml2-auth/issues/new' % str(objs))
 
+@contextlib.contextmanager
 def _initialize_temp_file(metadata_contents):
-    tmp = NamedTemporaryFile()
+    tmp = NamedTemporaryFile(mode="w+")
     tmp.write(metadata_contents)
     tmp.seek(0)
-    return tmp
+
+    yield tmp
+
+    tmp.close()
 
 def _wrap_url(path):
     return {
@@ -91,12 +98,9 @@ def _get_saml_client(domain, metadata_id):
     acs_url = domain + get_reverse(["django_saml2_auth:acs"], reverse_args=[metadata_id])
 
     metadata_model = SamlMetaData.objects.get(pk=metadata_id)
-    encoded_metadata = metadata_model.metadata_contents.encode('utf-8')
+    content = metadata_model.metadata_contents
 
-    with NamedTemporaryFile(mode="w+") as tmp:
-        tmp.write(metadata_model.metadata_contents)
-        tmp.seek(0)
-            
+    with _initialize_temp_file(content) as tmp:            
         wrapped_metadata_url = _wrap_url(tmp.name)
 
         saml_settings = {
