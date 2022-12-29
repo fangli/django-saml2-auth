@@ -93,41 +93,43 @@ def _get_saml_client(domain, metadata_id):
     metadata_model = SamlMetaData.objects.get(pk=metadata_id)
     encoded_metadata = metadata_model.metadata_contents.encode('utf-8')
 
-    tmp = _initialize_temp_file(encoded_metadata)
-    wrapped_metadata_url = _wrap_url(tmp.name)
+    with NamedTemporaryFile(mode="w+") as tmp:
+        tmp.write(encoded_metadata)
+        tmp.seek(0)
+            
+        wrapped_metadata_url = _wrap_url(tmp.name)
 
-    saml_settings = {
-        'metadata': wrapped_metadata_url,
-        'service': {
-            'sp': {
-                'endpoints': {
-                    'assertion_consumer_service': [
-                        (acs_url, BINDING_HTTP_REDIRECT),
-                        (acs_url, BINDING_HTTP_POST)
-                    ],
+        saml_settings = {
+            'metadata': wrapped_metadata_url,
+            'service': {
+                'sp': {
+                    'endpoints': {
+                        'assertion_consumer_service': [
+                            (acs_url, BINDING_HTTP_REDIRECT),
+                            (acs_url, BINDING_HTTP_POST)
+                        ],
+                    },
+                    'allow_unsolicited': True,
+                    'authn_requests_signed': False,
+                    'logout_requests_signed': True,
+                    'want_assertions_signed': True,
+                    'want_response_signed': False,
                 },
-                'allow_unsolicited': True,
-                'authn_requests_signed': False,
-                'logout_requests_signed': True,
-                'want_assertions_signed': True,
-                'want_response_signed': False,
             },
-        },
-    }
+        }
 
-    # as acs urls now include metadata IDs, dynamically set the entity ID
-    saml_settings["entityid"] = acs_url
+        # as acs urls now include metadata IDs, dynamically set the entity ID
+        saml_settings["entityid"] = acs_url
 
-    if 'NAME_ID_FORMAT' in settings.SAML2_AUTH:
-        saml_settings['service']['sp']['name_id_format'] = settings.SAML2_AUTH['NAME_ID_FORMAT']
+        if 'NAME_ID_FORMAT' in settings.SAML2_AUTH:
+            saml_settings['service']['sp']['name_id_format'] = settings.SAML2_AUTH['NAME_ID_FORMAT']
 
-    spConfig = Saml2Config()
-    spConfig.load(saml_settings)
-    spConfig.allow_unknown_attributes = True
+        spConfig = Saml2Config()
+        spConfig.load(saml_settings)
+        spConfig.allow_unknown_attributes = True
 
-    tmp.close()
-    saml_client = Saml2Client(config=spConfig)
-    return saml_client
+        saml_client = Saml2Client(config=spConfig)
+        return saml_client
 
 
 @login_required
