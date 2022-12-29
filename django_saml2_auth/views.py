@@ -94,7 +94,7 @@ def _get_saml_client(domain, metadata_id):
     encoded_metadata = metadata_model.metadata_contents.encode('utf-8')
 
     with NamedTemporaryFile(mode="w+") as tmp:
-        tmp.write(encoded_metadata)
+        tmp.write(metadata_model.metadata_contents)
         tmp.seek(0)
             
         wrapped_metadata_url = _wrap_url(tmp.name)
