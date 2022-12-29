@@ -9,7 +9,7 @@ from saml2 import (
 )
 from saml2.client import Saml2Client
 from saml2.config import Config as Saml2Config
-from saml2.mdstore import MetadataStore
+from saml2.mdstore import MetadataStore, InMemoryMetaData
 
 from django import get_version
 from pkg_resources import parse_version
@@ -87,21 +87,8 @@ def _initialize_mds(cnf):
     if acs is None:
         raise Exception("Missing attribute converter specification")
 
-    try:
-        ca_certs = cnf.ca_certs
-    except Exception:
-        ca_certs = None
-    try:
-        disable_validation = cnf.disable_ssl_certificate_validation
-    except Exception:
-        disable_validation = False
-
-    mds = MetadataStore(
+    mds = InMemoryMetaData(
         acs,
-        cnf,
-        ca_certs,
-        disable_ssl_certificate_validation=disable_validation,
-        http_client_timeout=cnf.http_client_timeout,
     )
 
     return mds
