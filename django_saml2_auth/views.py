@@ -82,6 +82,30 @@ def _wrap_url(path):
         "local": [path]
     }
 
+def _initialize_mds(cnf):
+    acs = cnf.attribute_converters
+    if acs is None:
+        raise Exception("Missing attribute converter specification")
+
+    try:
+        ca_certs = cnf.ca_certs
+    except Exception:
+        ca_certs = None
+    try:
+        disable_validation = cnf.disable_ssl_certificate_validation
+    except Exception:
+        disable_validation = False
+
+    mds = MetadataStore(
+        acs,
+        cnf,
+        ca_certs,
+        disable_ssl_certificate_validation=disable_validation,
+        http_client_timeout=cnf.http_client_timeout,
+    )
+
+    return mds
+
 def _get_saml_client(domain, metadata_id):
     acs_url = domain + get_reverse(["django_saml2_auth:acs"], reverse_args=[metadata_id])
     
@@ -90,8 +114,7 @@ def _get_saml_client(domain, metadata_id):
     # )
 
     metadata_model = SamlMetaData.objects.get(pk=metadata_id)
-    mds = MetadataStore.parse(metadata_model.metadata_contents)
-
+    
     # tmp = NamedTemporaryFile()
     # tmp.write(metadata_model.metadata_contents.encode('utf-8'))
 
@@ -126,7 +149,11 @@ def _get_saml_client(domain, metadata_id):
     spConfig = Saml2Config()
     spConfig.load(saml_settings)
     spConfig.allow_unknown_attributes = True
+    
+    mds = _initialize_mds(spConfig)
+    mds.parse(metadata_model.metadata_contents)
     spConfig.metadata = mds
+
     saml_client = Saml2Client(config=spConfig)
     return saml_client
 
