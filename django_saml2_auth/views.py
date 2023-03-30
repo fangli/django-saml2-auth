@@ -173,8 +173,9 @@ def acs(r, metadata_id):
 
     saml_client = _get_saml_client(get_current_domain(r), metadata_id)
     resp = r.POST.get('SAMLResponse', None)
-    print(f"TESTING: session dict: {r.session}")
-    print(f"TESTING: session value: {r.session['login_next_url']}")
+    print(f"TESTING: session id: {id(r.session)}")
+    print(f"TESTING: session keys: {r.session.keys()}")
+    print(f"TESTING: session value: {r.session.get('login_next_url')}")
     next_url = r.session.get('login_next_url', _default_next_url())
 
     if not resp:
@@ -292,6 +293,8 @@ def signin(r, metadata_id):
             redirect_url = value
             break
 
+    print(f"TESTING: session id: {id(r.session)}")
+    print(f"TESTING: session keys: {r.session.keys()}")
     print(f"TESTING: session value: {r.session['login_next_url']}")
     return HttpResponseRedirect(redirect_url)
 
