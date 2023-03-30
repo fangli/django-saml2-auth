@@ -286,7 +286,7 @@ def signin(r, metadata_id):
     r.session['login_next_url'] = next_url
     
     saml_client = _get_saml_client(get_current_domain(r), metadata_id)
-    _, info = saml_client.prepare_for_authenticate(relay_state=redirect_url)
+    _, info = saml_client.prepare_for_authenticate(relay_state=next_url)
 
     redirect_url = None
 
