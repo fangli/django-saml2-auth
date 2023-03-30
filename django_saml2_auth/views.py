@@ -176,8 +176,10 @@ def acs(r, metadata_id):
     print(f"TESTING: underlying session key: {r.session.session_key}")
     print(f"TESTING: session object id: {id(r.session)}")
     print(f"TESTING: session keys: {r.session.keys()}")
-    print(f"TESTING: session value: {r.session.get('login_next_url')}")
+    print(f"TESTING: session next url value: {r.session.get('login_next_url')}")
+    print(f"TESTING: POST dict: {r.POST}")
     next_url = r.session.get('login_next_url', _default_next_url())
+    next_url = r.POST.get('RelayState', next_url)
 
     if not resp:
         return HttpResponseRedirect(get_reverse([denied, 'denied', 'django_saml2_auth:denied']))
@@ -283,9 +285,8 @@ def signin(r, metadata_id):
 
     r.session['login_next_url'] = next_url
     
-
     saml_client = _get_saml_client(get_current_domain(r), metadata_id)
-    _, info = saml_client.prepare_for_authenticate()
+    _, info = saml_client.prepare_for_authenticate(relay_state=redirect_url)
 
     redirect_url = None
 
@@ -294,10 +295,11 @@ def signin(r, metadata_id):
             redirect_url = value
             break
 
+    print(f"TESTING: redirect_url: {redirect_url}")
     print(f"TESTING: session object id: {id(r.session)}")
     print(f"TESTING: underlying session key: {r.session.session_key}")
     print(f"TESTING: session keys: {r.session.keys()}")
-    print(f"TESTING: session value: {r.session['login_next_url']}")
+    print(f"TESTING: session next url value: {r.session['login_next_url']}")
     return HttpResponseRedirect(redirect_url)
 
 
