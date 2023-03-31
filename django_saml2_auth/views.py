@@ -173,12 +173,10 @@ def acs(r, metadata_id):
 
     saml_client = _get_saml_client(get_current_domain(r), metadata_id)
     resp = r.POST.get('SAMLResponse', None)
-    print(f"TESTING: underlying session key: {r.session.session_key}")
-    print(f"TESTING: session object id: {id(r.session)}")
-    print(f"TESTING: session keys: {r.session.keys()}")
-    print(f"TESTING: session next url value: {r.session.get('login_next_url')}")
-    print(f"TESTING: POST dict: {r.POST}")
+    
     next_url = r.session.get('login_next_url', _default_next_url())
+    # use relay state to redirect due to issue described here
+    # https://github.com/fangli/django-saml2-auth/issues/112#issuecomment-529542145
     next_url = r.POST.get('RelayState', next_url)
 
     if not resp:
@@ -295,11 +293,6 @@ def signin(r, metadata_id):
             redirect_url = value
             break
 
-    print(f"TESTING: redirect_url: {redirect_url}")
-    print(f"TESTING: session object id: {id(r.session)}")
-    print(f"TESTING: underlying session key: {r.session.session_key}")
-    print(f"TESTING: session keys: {r.session.keys()}")
-    print(f"TESTING: session next url value: {r.session['login_next_url']}")
     return HttpResponseRedirect(redirect_url)
 
 
