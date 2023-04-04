@@ -108,12 +108,12 @@ How to use?
         url(r'^saml2_auth/', include('django_saml2_auth.urls')),
 
         # The following line will replace the default user login with SAML2 (optional)
-        # If you want to specific the after-login-redirect-URL, use parameter "?next=/the/path/you/want"
+        # If you want to specify the after-login-redirect-URL, use parameter "?next=/the/path/you/want"
         # with this view.
         url(r'^accounts/login/$', django_saml2_auth.views.signin),
 
         # The following line will replace the admin login with SAML2 (optional)
-        # If you want to specific the after-login-redirect-URL, use parameter "?next=/the/path/you/want"
+        # If you want to specify the after-login-redirect-URL, use parameter "?next=/the/path/you/want"
         # with this view.
         url(r'^admin/login/$', django_saml2_auth.views.signin),
 
