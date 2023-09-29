@@ -23,12 +23,14 @@ from django.http import HttpResponseRedirect
 from django.utils.http import is_safe_url
 from tempfile import NamedTemporaryFile
 import contextlib
-
-
+import logging
 
 from rest_auth.utils import jwt_encode
 
 from .models import SamlMetaData
+
+
+logger = logging.getLogger(__name__)
 
 
 # default User or custom User. Now both will work.
@@ -167,7 +169,7 @@ def _create_new_user(username, email, firstname, lastname):
 def acs(r, metadata_id):
     metadata = SamlMetaData.objects.filter(pk=metadata_id).first()
     if not metadata:
-        print("Denied because missing metadata")
+        logger.warning("Denied because missing metadata")
         return HttpResponseRedirect(get_reverse([denied, 'denied', 'django_saml2_auth:denied']))
 
     expected_email_domain = metadata.email_domain
@@ -181,7 +183,7 @@ def acs(r, metadata_id):
     next_url = r.POST.get('RelayState', next_url)
 
     if not resp:
-        print("Denied because no SAMLResponse")
+        logger.warning("Denied because no SAMLResponse")
         return HttpResponseRedirect(get_reverse([denied, 'denied', 'django_saml2_auth:denied']))
 
     authn_response = saml_client.parse_authn_request_response(
@@ -195,7 +197,7 @@ def acs(r, metadata_id):
         user_subject = authn_response.get_subject()
         user_name_id = user_subject.text.lower()
     except:
-        print("Denied because no user_name_id")
+        logger.warning("Denied because no user_name_id")
         return HttpResponseRedirect(
             get_reverse([denied, "denied", "django_saml2_auth:denied"])
         )
@@ -203,14 +205,14 @@ def acs(r, metadata_id):
     # NOTE: to protect against exploit caused by malicious config of other idps
     user_email_domain = user_name_id.split("@")[1]
     if not expected_email_domain == user_email_domain:
-        print("Denied because unexpected email domain")
+        logger.warning("Denied because unexpected email domain")
         return HttpResponseRedirect(
             get_reverse([denied, "denied", "django_saml2_auth:denied"])
         )
 
     user_identity = authn_response.get_identity()
     if user_identity is None:
-        print("Denied because no user_identity")
+        logger.warning("Denied because no user_identity")
         return HttpResponseRedirect(get_reverse([denied, 'denied', 'django_saml2_auth:denied']))
     
     target_user = None
@@ -233,7 +235,7 @@ def acs(r, metadata_id):
                 import_string(settings.SAML2_AUTH['TRIGGER']['CREATE_USER'])(user_identity)
             is_new_user = True
         else:
-            print("Denied because no user exists", user_name_id)
+            logger.warning("Denied because no user exists", user_name_id)
             return HttpResponseRedirect(get_reverse([denied, 'denied', 'django_saml2_auth:denied']))
 
     r.session.flush()
