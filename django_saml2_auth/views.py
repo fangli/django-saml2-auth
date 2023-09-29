@@ -193,7 +193,7 @@ def acs(r, metadata_id):
     user_name_id = None
     try:
         user_subject = authn_response.get_subject()
-        user_name_id = user_subject.text
+        user_name_id = user_subject.text.lower()
     except:
         print("Denied because no user_name_id")
         return HttpResponseRedirect(
@@ -233,12 +233,7 @@ def acs(r, metadata_id):
                 import_string(settings.SAML2_AUTH['TRIGGER']['CREATE_USER'])(user_identity)
             is_new_user = True
         else:
-            print("Denied because no user exists")
-            print("user_name_id", str(user_name_id))
-            print("user_identity", str(user_identity))
-            print("user_email_domain", str(user_email_domain))
-            print("user_subject", str(user_subject))
-            print("resp", str(resp))
+            print("Denied because no user exists", user_name_id)
             return HttpResponseRedirect(get_reverse([denied, 'denied', 'django_saml2_auth:denied']))
 
     r.session.flush()
