@@ -234,6 +234,11 @@ def acs(r, metadata_id):
             is_new_user = True
         else:
             print("Denied because no user exists")
+            print("user_name_id", str(user_name_id))
+            print("user_identity", str(user_identity))
+            print("user_email_domain", str(user_email_domain))
+            print("user_subject", str(user_subject))
+            print("resp", str(resp))
             return HttpResponseRedirect(get_reverse([denied, 'denied', 'django_saml2_auth:denied']))
 
     r.session.flush()
