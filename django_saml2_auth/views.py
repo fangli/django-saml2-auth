@@ -172,8 +172,8 @@ def acs(r, metadata_id):
         logger.warning("Denied because missing metadata")
         return HttpResponseRedirect(get_reverse([denied, 'denied', 'django_saml2_auth:denied']))
 
-    if metadata.metadata_contents is None or metadata.metadata_contents == '':
-        logger.warning("Denied because missing metadata contents")
+    if metadata.metadata_contents == '':
+        logger.warning("Denied because blank metadata contents")
         return HttpResponseRedirect(get_reverse([denied, 'denied', 'django_saml2_auth:denied']))
 
     expected_email_domain = metadata.email_domain
