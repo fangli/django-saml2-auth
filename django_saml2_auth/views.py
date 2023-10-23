@@ -239,7 +239,7 @@ def acs(r, metadata_id):
                 import_string(settings.SAML2_AUTH['TRIGGER']['CREATE_USER'])(user_identity)
             is_new_user = True
         else:
-            logger.warning("Denied because no user exists", user_name_id)
+            logger.warning(f"Denied because no user exists, id: {user_name_id}")
             return HttpResponseRedirect(get_reverse([denied, 'denied', 'django_saml2_auth:denied']))
 
     r.session.flush()
