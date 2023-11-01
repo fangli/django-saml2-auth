@@ -164,17 +164,17 @@ def acs(r):
     next_url = r.session.get('login_next_url', _default_next_url())
 
     if not resp:
-        logging.info('no saml response from identity provider')
+        logging.error('no saml response from identity provider')
         return HttpResponseRedirect(get_reverse([denied, 'denied', 'django_saml2_auth:denied']))
 
     authn_response = saml_client.parse_authn_request_response(resp, entity.BINDING_HTTP_POST)
     if authn_response is None:
-        logging.info('SAML response obtained, but failed to parse')
+        logging.error('SAML response obtained from identity provider, but did not parse')
         return HttpResponseRedirect(get_reverse([denied, 'denied', 'django_saml2_auth:denied']))
 
     user_identity = authn_response.get_identity()
     if user_identity is None:
-        logging.info('authenticated SAML response does not contains an identity')
+        logging.info('SAML response does not contains an identity')
         return HttpResponseRedirect(get_reverse([denied, 'denied', 'django_saml2_auth:denied']))
 
     user_email = user_identity[settings.SAML2_AUTH.get('ATTRIBUTES_MAP', {}).get('email', 'Email')][0]
@@ -195,7 +195,7 @@ def acs(r):
         if new_user_should_be_created: 
             target_user = _create_new_user(user_name, user_email, user_first_name, user_last_name)
             if settings.SAML2_AUTH.get('TRIGGER', {}).get('CREATE_USER', None):
-                import_string(settings.SAML2_AUTH['TRIGGER']['CREATE_USER'])(user_identity)
+                import_string(settings.SAML2_AUTH['TRIGGER']['CREATE_USER'])(user_identity, target_user)
             is_new_user = True
         else:
             logging.info('externally authenticated identity does not exist locally, and automatic creation is forbidden')
@@ -205,12 +205,15 @@ def acs(r):
 
     if target_user.is_active:
 
-        authentication_backend = settings.SAML2_AUTH.get('AUTHENTICATION_BACKEND', 'django.contrib.auth.backends.ModelBackend')
+        AUTHENTICATION_BACKEND = settings.SAML2_AUTH.get('AUTHENTICATION_BACKEND', 'django.contrib.auth.backends.ModelBackend')
         logger.info('attempting login for user {} with authentication backend {}', )
-        target_user.backend = authentication_backend
+        target_user.backend = AUTHENTICATION_BACKEND
         login(r, target_user)
+        logger.info('logged in user {}', user_name)
+        if settings.SAML2_AUTH.get('TRIGGER', {}).get('LOGIN', None):
+            import_string(settings.SAML2_AUTH['TRIGGER']['LOGIN'])(user_identity, target_user)   
     else:
-        logging.info('rejecting authenticated identity as inactive')
+        logging.info('denied user {} access due to user being marked as inactive')
         return HttpResponseRedirect(get_reverse([denied, 'denied', 'django_saml2_auth:denied']))
 
     if settings.SAML2_AUTH.get('USE_JWT') is True:
@@ -226,13 +229,12 @@ def acs(r):
 
     if is_new_user:
         try:
-            logging.info('new user')
             return render(r, 'django_saml2_auth/welcome.html', {'user': r.user})
         except TemplateDoesNotExist:
             logging.info('new user welcome template not found, redirecting to {}'.format(next_url))
             return HttpResponseRedirect(next_url)
     else:
-        logging.info('redirecting existing user to {}'.format(next_url))
+        logging.info('saml authentication complete, redirecting user {} to {}'.format(user_name, next_url))
         return HttpResponseRedirect(next_url)
 
 
