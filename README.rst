@@ -260,6 +260,11 @@ You should see :
 
 The `Identity Provider metadata` link is the METADATA_AUTO_CONF_URL.
 
+Additional Notes
+================
+
+- in the acs method, the local user is determined from the SAML assertion returned by the identity provider, based on a `username` match 
+
 
 How to Contribute
 =================

@@ -1,7 +1,6 @@
 #!/usr/bin/env python
 # -*- coding:utf-8 -*-
 
-
 from saml2 import (
     BINDING_HTTP_POST,
     BINDING_HTTP_REDIRECT,
@@ -22,8 +21,8 @@ from django.template import TemplateDoesNotExist
 from django.http import HttpResponseRedirect
 from django.utils.http import is_safe_url
 
-from rest_auth.utils import jwt_encode
-
+if settings.SAML2_AUTH.get('USE_JWT') is True:
+    from rest_auth.utils import jwt_encode
 
 # default User or custom User. Now both will work.
 User = get_user_model()
@@ -34,6 +33,9 @@ except:
     import urllib.request as _urllib
     import urllib.error
     import urllib.parse
+
+import logging
+logger = logging.getLogger('saml2-auth')
 
 if parse_version(get_version()) >= parse_version('1.7'):
     from django.utils.module_loading import import_string
@@ -155,20 +157,24 @@ def _create_new_user(username, email, firstname, lastname):
 
 @csrf_exempt
 def acs(r):
+    logging.info('acs')
+
     saml_client = _get_saml_client(get_current_domain(r))
     resp = r.POST.get('SAMLResponse', None)
     next_url = r.session.get('login_next_url', _default_next_url())
 
     if not resp:
+        logging.info('no saml response from identity provider')
         return HttpResponseRedirect(get_reverse([denied, 'denied', 'django_saml2_auth:denied']))
 
-    authn_response = saml_client.parse_authn_request_response(
-        resp, entity.BINDING_HTTP_POST)
+    authn_response = saml_client.parse_authn_request_response(resp, entity.BINDING_HTTP_POST)
     if authn_response is None:
+        logging.info('SAML response obtained, but failed to parse')
         return HttpResponseRedirect(get_reverse([denied, 'denied', 'django_saml2_auth:denied']))
 
     user_identity = authn_response.get_identity()
     if user_identity is None:
+        logging.info('authenticated SAML response does not contains an identity')
         return HttpResponseRedirect(get_reverse([denied, 'denied', 'django_saml2_auth:denied']))
 
     user_email = user_identity[settings.SAML2_AUTH.get('ATTRIBUTES_MAP', {}).get('email', 'Email')][0]
@@ -184,6 +190,7 @@ def acs(r):
         if settings.SAML2_AUTH.get('TRIGGER', {}).get('BEFORE_LOGIN', None):
             import_string(settings.SAML2_AUTH['TRIGGER']['BEFORE_LOGIN'])(user_identity)
     except User.DoesNotExist:
+        logging.info('no local match found for externally authenticated identity')
         new_user_should_be_created = settings.SAML2_AUTH.get('CREATE_USER', True)
         if new_user_should_be_created: 
             target_user = _create_new_user(user_name, user_email, user_first_name, user_last_name)
@@ -191,17 +198,23 @@ def acs(r):
                 import_string(settings.SAML2_AUTH['TRIGGER']['CREATE_USER'])(user_identity)
             is_new_user = True
         else:
+            logging.info('externally authenticated identity does not exist locally, and automatic creation is forbidden')
             return HttpResponseRedirect(get_reverse([denied, 'denied', 'django_saml2_auth:denied']))
 
     r.session.flush()
 
     if target_user.is_active:
-        target_user.backend = 'django.contrib.auth.backends.ModelBackend'
+
+        authentication_backend = settings.SAML2_AUTH.get('AUTHENTICATION_BACKEND', 'django.contrib.auth.backends.ModelBackend')
+        logger.info('attempting login for user {} with authentication backend {}', )
+        target_user.backend = authentication_backend
         login(r, target_user)
     else:
+        logging.info('rejecting authenticated identity as inactive')
         return HttpResponseRedirect(get_reverse([denied, 'denied', 'django_saml2_auth:denied']))
 
     if settings.SAML2_AUTH.get('USE_JWT') is True:
+        logging.info('generating fresh JWT token')
         # We use JWT auth send token to frontend
         jwt_token = jwt_encode(target_user)
         query = '?uid={}&token={}'.format(target_user.id, jwt_token)
@@ -213,14 +226,18 @@ def acs(r):
 
     if is_new_user:
         try:
+            logging.info('new user')
             return render(r, 'django_saml2_auth/welcome.html', {'user': r.user})
         except TemplateDoesNotExist:
+            logging.info('new user welcome template not found, redirecting to {}'.format(next_url))
             return HttpResponseRedirect(next_url)
     else:
+        logging.info('redirecting existing user to {}'.format(next_url))
         return HttpResponseRedirect(next_url)
 
 
 def signin(r):
+    logging.info('signin')
     try:
         import urlparse as _urlparse
         from urllib import unquote
@@ -256,9 +273,11 @@ def signin(r):
             redirect_url = value
             break
 
+    logging.info('signin redirecting to {}'.format(redirect_url))
     return HttpResponseRedirect(redirect_url)
 
 
 def signout(r):
+    logging.info('logging user out')
     logout(r)
     return render(r, 'django_saml2_auth/signout.html')
