@@ -157,24 +157,24 @@ def _create_new_user(username, email, firstname, lastname):
 
 @csrf_exempt
 def acs(r):
-    logging.info('acs')
+    logging.info('received login request from identity provider')
 
     saml_client = _get_saml_client(get_current_domain(r))
     resp = r.POST.get('SAMLResponse', None)
     next_url = r.session.get('login_next_url', _default_next_url())
 
     if not resp:
-        logging.error('no saml response from identity provider')
+        logging.error('login request from identity provider does not contain a saml response ')
         return HttpResponseRedirect(get_reverse([denied, 'denied', 'django_saml2_auth:denied']))
 
     authn_response = saml_client.parse_authn_request_response(resp, entity.BINDING_HTTP_POST)
     if authn_response is None:
-        logging.error('SAML response obtained from identity provider, but did not parse')
+        logging.error('login request from identity provider contains a SAML response that could not be parsed')
         return HttpResponseRedirect(get_reverse([denied, 'denied', 'django_saml2_auth:denied']))
 
     user_identity = authn_response.get_identity()
     if user_identity is None:
-        logging.info('SAML response does not contains an identity')
+        logging.info('SAML response in login request from identity provider does not contains an identity')
         return HttpResponseRedirect(get_reverse([denied, 'denied', 'django_saml2_auth:denied']))
 
     user_email = user_identity[settings.SAML2_AUTH.get('ATTRIBUTES_MAP', {}).get('email', 'Email')][0]
@@ -190,7 +190,7 @@ def acs(r):
         if settings.SAML2_AUTH.get('TRIGGER', {}).get('BEFORE_LOGIN', None):
             import_string(settings.SAML2_AUTH['TRIGGER']['BEFORE_LOGIN'])(user_identity)
     except User.DoesNotExist:
-        logging.info('no local match found for externally authenticated identity')
+        logging.info('no local match found for externally authenticated identity {}'.format(user_name))
         new_user_should_be_created = settings.SAML2_AUTH.get('CREATE_USER', True)
         if new_user_should_be_created: 
             target_user = _create_new_user(user_name, user_email, user_first_name, user_last_name)
@@ -198,7 +198,7 @@ def acs(r):
                 import_string(settings.SAML2_AUTH['TRIGGER']['CREATE_USER'])(user_identity, target_user)
             is_new_user = True
         else:
-            logging.info('externally authenticated identity does not exist locally, and automatic creation is forbidden')
+            logging.info('externally authenticated user identity {} does not exist locally, and automatic creation is forbidden'.format(user_name))
             return HttpResponseRedirect(get_reverse([denied, 'denied', 'django_saml2_auth:denied']))
 
     r.session.flush()
@@ -206,18 +206,17 @@ def acs(r):
     if target_user.is_active:
 
         AUTHENTICATION_BACKEND = settings.SAML2_AUTH.get('AUTHENTICATION_BACKEND', 'django.contrib.auth.backends.ModelBackend')
-        logger.info('attempting login for user {} with authentication backend {}', )
         target_user.backend = AUTHENTICATION_BACKEND
         login(r, target_user)
-        logger.info('logged in user {}', user_name)
+        logger.info('user {} logged in'.format(user_name))
         if settings.SAML2_AUTH.get('TRIGGER', {}).get('LOGIN', None):
             import_string(settings.SAML2_AUTH['TRIGGER']['LOGIN'])(user_identity, target_user)   
     else:
-        logging.info('denied user {} access due to user being marked as inactive')
+        logging.info('denied user {} access due to user being marked as inactive'.format(user_name))
         return HttpResponseRedirect(get_reverse([denied, 'denied', 'django_saml2_auth:denied']))
 
     if settings.SAML2_AUTH.get('USE_JWT') is True:
-        logging.info('generating fresh JWT token')
+        logging.info('generating a fresh JWT token for {}'.format(user_name))
         # We use JWT auth send token to frontend
         jwt_token = jwt_encode(target_user)
         query = '?uid={}&token={}'.format(target_user.id, jwt_token)
@@ -231,7 +230,6 @@ def acs(r):
         try:
             return render(r, 'django_saml2_auth/welcome.html', {'user': r.user})
         except TemplateDoesNotExist:
-            logging.info('new user welcome template not found, redirecting to {}'.format(next_url))
             return HttpResponseRedirect(next_url)
     else:
         logging.info('saml authentication complete, redirecting user {} to {}'.format(user_name, next_url))
@@ -239,7 +237,6 @@ def acs(r):
 
 
 def signin(r):
-    logging.info('signin')
     try:
         import urlparse as _urlparse
         from urllib import unquote
@@ -275,11 +272,10 @@ def signin(r):
             redirect_url = value
             break
 
-    logging.info('signin redirecting to {}'.format(redirect_url))
+    logging.info('redirecting to {}'.format(redirect_url))
     return HttpResponseRedirect(redirect_url)
 
 
 def signout(r):
-    logging.info('logging user out')
     logout(r)
     return render(r, 'django_saml2_auth/signout.html')
