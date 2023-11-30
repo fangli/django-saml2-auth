@@ -166,11 +166,15 @@ def acs(r):
     if not resp:
         logging.error('login request from identity provider does not contain a saml response ')
         return HttpResponseRedirect(get_reverse([denied, 'denied', 'django_saml2_auth:denied']))
+    
+    # DEBUG
+    logging.info('raw SAML rsp received from identity provider: {}'.format(resp))
 
     authn_response = saml_client.parse_authn_request_response(resp, entity.BINDING_HTTP_POST)
     if authn_response is None:
         logging.error(
             'login request from identity provider contains a SAML response that could not be parsed: {}'.format(resp))
+
         return HttpResponseRedirect(get_reverse([denied, 'denied', 'django_saml2_auth:denied']))
 
     user_identity = authn_response.get_identity()
