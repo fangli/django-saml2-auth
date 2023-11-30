@@ -172,6 +172,9 @@ def acs(r):
 
     authn_response = saml_client.parse_authn_request_response(resp, entity.BINDING_HTTP_POST)
     if authn_response is None:
+        authn_response = saml_client.parse_authn_request_response(resp, entity.BINDING_HTTP_ARTIFACT)
+    
+    if authn_response is None:
         logging.error(
             'login request from identity provider contains a SAML response that could not be parsed: {}'.format(resp))
 
